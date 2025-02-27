@@ -1,0 +1,26 @@
+{
+    "@metadata": {
+        "authors": [
+            "נריה"
+        ]
+    },
+    "aspaklaryareview": "בדיקת תמונות",
+    "aspaklarya-review-button": "בדיקה חוזרת",
+    "aspaklarya-review-title": "שליחת תמונות לבדיקה חוזרת",
+    "aspaklarya-review-tooltip": "שליחת תמונות בדף זה לבדיקה חוזרת",
+    "aspaklarya-review-submit": "שלח לבדיקה",
+    "aspaklarya-review-cancel": "ביטול",
+    "aspaklarya-review-success": "התמונה נשלחה לבדיקה",
+    "aspaklarya-queue-title": "תור בדיקת תמונות",
+    "aspaklarya-queue-empty": "אין תמונות הממתינות לבדיקה, אשריכם ישראל!",
+    "aspaklarya-queue-requested-by": "נשלח על ידי: $1",
+    "aspaklarya-queue-timestamp": "נשלח בתאריך: $1",
+    "aspaklarya-queue-page": "מופיע בדף: $1",
+    "aspaklarya-queue-remove": "הסר תמונה",
+    "aspaklarya-queue-approve": "אשר תמונה",
+    "aspaklarya-queue-edited": "התמונה רוטשה",
+    "aspaklarya-notification-approved": "התמונה $1 סומנה כתמונה שאינה בעייתית. אנא שלח אותה לבדיקה חוזרת.",
+    "aspaklarya-notification-removed": "התמונה $1 הוסרה מהערכים, תודה!",
+    "aspaklarya-notification-edited": "התמונה $1 עברה עריכה. אנא בדוק אם היא תקינה כעת",
+    "right-aspaklarya-review": "בדיקת תמונות"
+}
