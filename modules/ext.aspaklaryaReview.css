@@ -1,0 +1,54 @@
+.aspaklarya-hidden {
+    filter: blur(30px);
+    pointer-events: none;
+}
+
+/* חלונית התמונות */
+.aspaklarya-review-dialog {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.aspaklarya-review-images {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1em;
+    margin: 1em 0;
+}
+
+.aspaklarya-review-image-item {
+    border: 1px solid #ddd;
+    padding: 0.5em;
+    border-radius: 3px;
+}
+
+.aspaklarya-review-image-item img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 0.5em;
+}
+
+.aspaklarya-review-image-item .oo-ui-checkboxInputWidget {
+    margin-top: 0.5em;
+}
+
+.aspaklarya-review-buttons {
+    margin-top: 1em;
+    text-align: right;
+}
+
+/* כפתור בסרגל הצד */
+#t-aspaklarya-review {
+    background-position: right;
+    padding-right: 1.5em;
+}
+
+/* הועת הצלחה */
+.aspaklarya-success-message {
+    background-color: #dff0d8;
+    border: 1px solid #d6e9c6;
+    color: #3c763d;
+    padding: 1em;
+    margin: 1em 0;
+    border-radius: 3px;
+}

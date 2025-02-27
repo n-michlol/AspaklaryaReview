@@ -1,0 +1,100 @@
+{
+    "name": "AspaklaryaReview",
+    "version": "1.0.0",
+    "author": [
+        "Neriah"
+    ],
+    "url": false,
+    "descriptionmsg": "aspaklaryareview-desc",
+    "license-name": "GPL-3.0-or-later",
+    "type": "specialpage",
+    "requires": {
+        "MediaWiki": ">= 1.39.0",
+        "extensions": {
+            "Echo": "*"
+        }
+    },
+    "AutoloadNamespaces": {
+        "MediaWiki\\Extension\\AspaklaryaReview\\": "src/"
+    },
+    "SpecialPages": {
+      "AspaklaryaQueue": {
+        "class": "MediaWiki\\Extension\\AspaklaryaReview\\SpecialAspaklaryaQueue",
+        "services": [
+          "DBLoadBalancer",
+          "UserFactory"
+        ]
+      }
+    },
+    "APIModules": {
+        "aspaklaryareview": "MediaWiki\\Extension\\AspaklaryaReview\\Api\\ApiAspaklaryaReview"
+    },
+    "MessagesDirs": {
+        "AspaklaryaReview": [
+            "i18n"
+        ]
+    },
+    "ExtensionMessagesFiles": {
+        "AspaklaryaReviewAlias": "AspaklaryaReview.alias.php"
+    },
+    "ResourceModules": {
+        "ext.aspaklaryaReview": {
+            "scripts": [
+                "modules/ext.aspaklaryaReview.js"
+            ],
+            "styles": [
+                "modules/ext.aspaklaryaReview.css"
+            ],
+            "messages": [
+                "aspaklarya-review-button",
+                "aspaklarya-review-title",
+                "aspaklarya-review-submit",
+                "aspaklarya-review-cancel",
+                "aspaklarya-review-success",
+                "aspaklarya-review-tooltip"
+            ],
+            "dependencies": [
+                "mediawiki.api",
+                "mediawiki.util",
+                "oojs-ui-core",
+                "oojs-ui-windows"
+            ]
+        },
+        "ext.aspaklaryaQueue": {
+            "scripts": [
+                "modules/queue/ext.aspaklaryaQueue.js"
+            ],
+            "styles": [
+                "modules/queue/ext.aspaklaryaQueue.css"
+            ],
+            "messages": [
+                "aspaklarya-queue-remove",
+                "aspaklarya-queue-approve",
+                "aspaklarya-queue-edited"
+            ],
+            "dependencies": [
+                "mediawiki.api",
+                "oojs-ui-core",
+                "oojs-ui-widgets"
+            ]
+        }
+    },
+    "ResourceFileModulePaths": {
+        "localBasePath": "",
+        "remoteExtPath": "AspaklaryaReview"
+    },
+    "Hooks": {
+        "BeforePageDisplay": "MediaWiki\\Extension\\AspaklaryaReview\\Hooks::onBeforePageDisplay",
+        "LoadExtensionSchemaUpdates": "MediaWiki\\Extension\\AspaklaryaReview\\Hooks::onLoadExtensionSchemaUpdates",
+        "BeforeCreateEchoEvent": "MediaWiki\\Extension\\AspaklaryaReview\\NotificationDefiner::onBeforeCreateEchoEvent"
+    },
+    "GroupPermissions": {
+        "aspaklarya2": {
+            "aspaklarya-review": true
+        }
+    },
+    "AvailableRights": [
+        "aspaklarya-review"
+    ],
+    "manifest_version": 2
+}

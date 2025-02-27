@@ -1,0 +1,26 @@
+{
+    "@metadata": {
+        "authors": [
+            "Neriah"
+        ]
+    },
+    "aspaklaryareview": "Image Review",
+    "aspaklarya-review-button": "Recheck",
+    "aspaklarya-review-title": "Submit Images for Recheck",
+    "aspaklarya-review-tooltip": "Submit images on this page for rechecking",
+    "aspaklarya-review-submit": "Submit for Review",
+    "aspaklarya-review-cancel": "Cancel",
+    "aspaklarya-review-success": "The image has been submitted for review",
+    "aspaklarya-queue-title": "Image Review Queue",
+    "aspaklarya-queue-empty": "No images are waiting for review, Ashreichem Yisrael!",
+    "aspaklarya-queue-requested-by": "Submitted by: $1",
+    "aspaklarya-queue-timestamp": "Submitted on: $1",
+    "aspaklarya-queue-page": "Appears on page: $1",
+    "aspaklarya-queue-remove": "Remove Image",
+    "aspaklarya-queue-approve": "Approve Image",
+    "aspaklarya-queue-edited": "The image has been retouched",
+    "aspaklarya-notification-approved": "The image $1 has been marked as non-problematic. Please submit it for rechecking.",
+    "aspaklarya-notification-removed": "The image $1 has been removed from the articles, thank you!",
+    "aspaklarya-notification-edited": "The image $1 has been edited. Please check if it is now valid.",
+    "right-aspaklarya-review": "Image Review"
+}
