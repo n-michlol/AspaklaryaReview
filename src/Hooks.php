@@ -3,13 +3,13 @@
 namespace MediaWiki\Extension\AspaklaryaReview;
 
 use MediaWiki\Hook\BeforePageDisplayHook;
-use MediaWiki\Installer\Hook\LoadExtensionSchemaUpdatesHook;
 use MediaWiki\Permissions\PermissionManager;
 use MediaWiki\User\UserFactory;
 use OutputPage;
 use Skin;
+use DatabaseUpdater;
 
-class Hooks implements BeforePageDisplayHook, LoadExtensionSchemaUpdatesHook {
+class Hooks implements BeforePageDisplayHook {
     private $permissionManager;
     private $userFactory;
 
@@ -35,12 +35,12 @@ class Hooks implements BeforePageDisplayHook, LoadExtensionSchemaUpdatesHook {
     }
 
     /**
-     * Set up database tables
+     * Static method for schema updates to avoid DI issues
      *
-     * @param \DatabaseUpdater $updater
+     * @param DatabaseUpdater $updater
      * @return void
      */
-    public function onLoadExtensionSchemaUpdates($updater): void {
+    public static function onLoadExtensionSchemaUpdates($updater): void {
         $dbType = $updater->getDB()->getType();
         
         if ($dbType === 'mysql' || $dbType === 'sqlite') {
