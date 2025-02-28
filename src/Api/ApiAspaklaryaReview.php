@@ -31,9 +31,10 @@ class ApiAspaklaryaReview extends ApiBase {
         
         $dbw = $this->loadBalancer->getConnection(DB_PRIMARY);
         
-        switch ($params['do']) {
+        $action = $params['do'] ?? 'submit';
+        
+        switch ($action) {
             case 'submit':
-                // Add to review queue
                 $dbw->insert(
                     'aspaklarya_review_queue',
                     [
@@ -58,7 +59,6 @@ class ApiAspaklaryaReview extends ApiBase {
                 );
                 
                 if ($row) {
-                    // Update status
                     $dbw->update(
                         'aspaklarya_review_queue',
                         [
@@ -71,7 +71,6 @@ class ApiAspaklaryaReview extends ApiBase {
                     
                     $this->removeImage($row->arq_filename);
                     
-                    // Send notification
                     $notificationId = $this->sendNotification(
                         $row->arq_requester,
                         'removed',
@@ -141,7 +140,6 @@ class ApiAspaklaryaReview extends ApiBase {
         $services = \MediaWiki\MediaWikiServices::getInstance();
         $dbr = $this->loadBalancer->getConnection(DB_REPLICA);
         
-        // Get all pages that use this file
         $res = $dbr->select(
             'imagelinks',
             'il_from',
@@ -164,7 +162,7 @@ class ApiAspaklaryaReview extends ApiBase {
             
             $text = $content->getText();
             
-            $text = $this->removeImageFromText($text, $filename); // Remove image using regex patterns
+            $text = $this->removeImageFromText($text, $filename);
             
             $updater = $page->newPageUpdater($this->getUser());
             $updater->setContent('text', new WikitextContent($text));
@@ -174,7 +172,6 @@ class ApiAspaklaryaReview extends ApiBase {
             );
         }
         
-        // Create redirect page if needed
         $fileTitle = Title::makeTitle(NS_FILE, $filename);
         if (!$fileTitle->exists()) {
             $page = WikiPage::factory($fileTitle);
@@ -191,7 +188,6 @@ class ApiAspaklaryaReview extends ApiBase {
         $filename = preg_quote($filename, '/');
         $filename = str_replace('\\s', '[_\\s]', $filename);
         
-        // Gallery pattern
         $text = preg_replace(
             '/<gallery([^>]*)>\s*' . $filename . '\s*(\|[^\n]*\n|\n)/is',
             '<gallery$1>',
@@ -216,7 +212,8 @@ class ApiAspaklaryaReview extends ApiBase {
         return [
             'do' => [
                 ApiBase::PARAM_TYPE => ['submit', 'remove', 'approve', 'edited'],
-                ApiBase::PARAM_REQUIRED => true
+                ApiBase::PARAM_REQUIRED => false,
+                ApiBase::PARAM_DEFAULT => 'submit'
             ],
             'id' => [
                 ApiBase::PARAM_TYPE => 'integer',

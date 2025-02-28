@@ -77,7 +77,11 @@
                 "aspaklarya-queue-remove",
                 "aspaklarya-queue-approve",
                 "aspaklarya-queue-edited",
-                "aspaklarya-queue-empty"
+                "aspaklarya-queue-empty",
+                "aspaklarya-queue-title",
+                "aspaklarya-queue-requested-by",
+                "aspaklarya-queue-timestamp",
+                "aspaklarya-queue-page"
             ],
             "dependencies": [
                 "mediawiki.api",

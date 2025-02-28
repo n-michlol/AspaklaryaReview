@@ -5,6 +5,7 @@
         ]
     },
     "aspaklaryareview": "בדיקת תמונות",
+    "aspaklaryareview-desc": "הרחבת מדיה־ויקי לבדיקת תמונות במכלול",
     "aspaklarya-review-button": "בדיקה חוזרת",
     "aspaklarya-review-title": "שליחת תמונות לבדיקה חוזרת",
     "aspaklarya-review-tooltip": "שליחת תמונות בדף זה לבדיקה חוזרת",
@@ -22,5 +23,6 @@
     "aspaklarya-notification-approved": "התמונה $1 סומנה כתמונה שאינה בעייתית. אנא שלח אותה לבדיקה חוזרת.",
     "aspaklarya-notification-removed": "התמונה $1 הוסרה מהערכים, תודה!",
     "aspaklarya-notification-edited": "התמונה $1 עברה עריכה. אנא בדוק אם היא תקינה כעת",
+    "notification-link-text-view-file": "צפייה בקובץ",
     "right-aspaklarya-review": "בדיקת תמונות"
 }

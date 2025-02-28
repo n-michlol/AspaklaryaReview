@@ -5,6 +5,7 @@
         ]
     },
     "aspaklaryareview": "Image Review",
+    "aspaklaryareview-desc": "MediaWiki extension for reviewing images for Hamichlol",
     "aspaklarya-review-button": "Recheck",
     "aspaklarya-review-title": "Submit Images for Recheck",
     "aspaklarya-review-tooltip": "Submit images on this page for rechecking",
@@ -22,5 +23,6 @@
     "aspaklarya-notification-approved": "The image $1 has been marked as non-problematic. Please submit it for rechecking.",
     "aspaklarya-notification-removed": "The image $1 has been removed from the articles, thank you!",
     "aspaklarya-notification-edited": "The image $1 has been edited. Please check if it is now valid.",
+    "notification-link-text-view-file": "View file",
     "right-aspaklarya-review": "Image Review"
 }
