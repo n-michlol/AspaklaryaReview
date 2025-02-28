@@ -1,6 +1,8 @@
 .aspaklarya-hidden {
     filter: blur(30px);
     pointer-events: none;
+    opacity: 0.6;
+    transition: filter 0.3s, opacity 0.3s;
 }
 
 /* חלונית התמונות */
@@ -14,18 +16,22 @@
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1em;
     margin: 1em 0;
+    max-height: 60vh;
+    overflow-y: auto;
 }
 
 .aspaklarya-review-image-item {
     border: 1px solid #ddd;
     padding: 0.5em;
     border-radius: 3px;
+    background-color: #f9f9f9;
 }
 
 .aspaklarya-review-image-item img {
     max-width: 100%;
     height: auto;
     margin-bottom: 0.5em;
+    border: 1px solid #eee;
 }
 
 .aspaklarya-review-image-item .oo-ui-checkboxInputWidget {
@@ -35,6 +41,9 @@
 .aspaklarya-review-buttons {
     margin-top: 1em;
     text-align: right;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5em;
 }
 
 /* כפתור בסרגל הצד */
