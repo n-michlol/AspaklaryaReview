@@ -23,7 +23,7 @@ class EditedPresentationModel extends EchoEventPresentationModel {
         $filename = $this->event->getExtraParam('filename');
         return [
             'url' => \Title::newFromText($filename, NS_FILE)->getFullURL(),
-            'label' => Message::newFromKey('aspaklarya-notification-view-file')->text()
+            'label' => $this->msg('notification-link-text-view-file')->text()
         ];
     }
 }
