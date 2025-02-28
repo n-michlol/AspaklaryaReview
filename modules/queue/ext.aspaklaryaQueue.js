@@ -6,23 +6,39 @@
     });
 
     function initializeEventListeners() {
-        $(document).on('click', '.aspaklarya-action-remove', function() {
-            const id = $(this).data('id');
+        $(document).on('click', '.aspaklarya-action-remove', function(e) {
+            e.preventDefault();
+            const id = $(this).data('id') || $(this).attr('data-id');
+            if (!id) {
+                mw.notify('Error: Cannot find item ID', {type: 'error'});
+                return;
+            }
             handleAction(id, 'remove');
         });
 
-        $(document).on('click', '.aspaklarya-action-approve', function() {
-            const id = $(this).data('id');
+        $(document).on('click', '.aspaklarya-action-approve', function(e) {
+            e.preventDefault();
+            const id = $(this).data('id') || $(this).attr('data-id');
+            if (!id) {
+                mw.notify('Error: Cannot find item ID', {type: 'error'});
+                return;
+            }
             handleAction(id, 'approve');
         });
 
-        $(document).on('click', '.aspaklarya-action-edited', function() {
-            const id = $(this).data('id');
+        $(document).on('click', '.aspaklarya-action-edited', function(e) {
+            e.preventDefault();
+            const id = $(this).data('id') || $(this).attr('data-id');
+            if (!id) {
+                mw.notify('Error: Cannot find item ID', {type: 'error'});
+                return;
+            }
             handleAction(id, 'edited');
         });
     }
 
     function handleAction(id, action) {
+        console.log('Handling action:', action, 'for ID:', id);
         const $item = $(`[data-id="${id}"].aspaklarya-queue-item`);
         $item.addClass('is-loading');
         

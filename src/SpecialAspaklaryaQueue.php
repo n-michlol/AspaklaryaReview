@@ -107,7 +107,8 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             'label' => $this->msg('aspaklarya-queue-remove')->text(),
             'flags' => ['destructive'],
             'classes' => ['aspaklarya-action-remove'],
-            'data' => ['id' => $id]
+            'infusable' => true,
+            'data' => ['id' => (string)$id]
         ]);
         $html .= $removeButton->toString();
         
@@ -115,7 +116,8 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             'label' => $this->msg('aspaklarya-queue-approve')->text(),
             'flags' => ['progressive'],
             'classes' => ['aspaklarya-action-approve'],
-            'data' => ['id' => $id]
+            'infusable' => true,
+            'data' => ['id' => (string)$id]
         ]);
         $html .= $approveButton->toString();
         
@@ -123,7 +125,8 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             'label' => $this->msg('aspaklarya-queue-edited')->text(),
             'flags' => [],
             'classes' => ['aspaklarya-action-edited'],
-            'data' => ['id' => $id]
+            'infusable' => true,
+            'data' => ['id' => (string)$id]
         ]);
         $html .= $editedButton->toString();
         
