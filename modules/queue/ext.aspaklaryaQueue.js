@@ -8,7 +8,7 @@
     function initializeEventListeners() {
         $(document).on('click', '.aspaklarya-action-remove', function(e) {
             e.preventDefault();
-            const id = $(this).data('id') || $(this).attr('data-id');
+            const id = $(this).data('id') || $(this).closest('[data-id]').attr('data-id');
             if (!id) {
                 mw.notify('Error: Cannot find item ID', {type: 'error'});
                 return;
@@ -18,7 +18,7 @@
 
         $(document).on('click', '.aspaklarya-action-approve', function(e) {
             e.preventDefault();
-            const id = $(this).data('id') || $(this).attr('data-id');
+            const id = $(this).data('id') || $(this).closest('[data-id]').attr('data-id');
             if (!id) {
                 mw.notify('Error: Cannot find item ID', {type: 'error'});
                 return;
@@ -28,7 +28,7 @@
 
         $(document).on('click', '.aspaklarya-action-edited', function(e) {
             e.preventDefault();
-            const id = $(this).data('id') || $(this).attr('data-id');
+            const id = $(this).data('id') || $(this).closest('[data-id]').attr('data-id');
             if (!id) {
                 mw.notify('Error: Cannot find item ID', {type: 'error'});
                 return;

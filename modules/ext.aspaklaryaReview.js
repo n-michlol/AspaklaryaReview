@@ -82,7 +82,11 @@
         });
 
         if (images.length === 0) {
-            mw.notify('No images found on this page.');
+            if (mw.notify) {
+                mw.notify('No images found on this page.');
+            } else {
+                alert('No images found on this page.');
+            }
             return;
         }
 
@@ -141,7 +145,11 @@
             const selectedImages = images.filter(img => img.checkbox.isSelected());
             
             if (selectedImages.length === 0) {
-                mw.notify('No images selected.');
+                if (mw.notify) {
+                    mw.notify('No images selected.');
+                } else {
+                    alert('No images selected.');
+                }
                 return;
             }
             
@@ -159,7 +167,18 @@
         let successCount = 0;
         let errorCount = 0;
         
-        const notification = mw.notification.notify('Submitting images...', {autoHide: false});
+        const notificationSystem = mw.notification || {
+            notify: function(message, options) {
+                const notifier = { close: function() { /* nothing to do */ } };
+                if (options && options.type === 'error') {
+                    console.error(message);
+                    alert(message);
+                }
+                return notifier;
+            }
+        };
+        
+        const notification = notificationSystem.notify('Submitting images...', {autoHide: false});
         
         const promises = images.map(image => {
             return api.postWithToken('csrf', {
@@ -181,10 +200,18 @@
             }).catch(function(code, data) {
                 console.error('Error submitting image:', code, data);
                 errorCount++;
-                if (data && data.exception) {
-                    mw.notify('Error submitting image: ' + data.exception, {type: 'error'});
+                if (mw.notify) {
+                    if (data && data.exception) {
+                        mw.notify('Error submitting image: ' + data.exception, {type: 'error'});
+                    } else {
+                        mw.notify('Error submitting image: ' + image.filename, {type: 'error'});
+                    }
                 } else {
-                    mw.notify('Error submitting image: ' + image.filename, {type: 'error'});
+                    if (data && data.exception) {
+                        alert('Error submitting image: ' + data.exception);
+                    } else {
+                        alert('Error submitting image: ' + image.filename);
+                    }
                 }
                 return null;
             });
@@ -194,11 +221,19 @@
             notification.close();
             
             if (successCount > 0) {
-                mw.notify(mw.msg('aspaklarya-review-success'), {type: 'success'});
+                if (mw.notify) {
+                    mw.notify(mw.msg('aspaklarya-review-success'), {type: 'success'});
+                } else {
+                    alert(mw.msg('aspaklarya-review-success'));
+                }
             }
             
             if (errorCount > 0) {
-                mw.notify('Some images failed to submit. Please try again.', {type: 'error'});
+                if (mw.notify) {
+                    mw.notify('Some images failed to submit. Please try again.', {type: 'error'});
+                } else {
+                    alert('Some images failed to submit. Please try again.');
+                }
             }
         });
     }

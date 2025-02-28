@@ -108,7 +108,7 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             'flags' => ['destructive'],
             'classes' => ['aspaklarya-action-remove'],
             'infusable' => true,
-            'data' => ['id' => (string)$id]
+            'data' => ['id' => $id]
         ]);
         $html .= $removeButton->toString();
         
@@ -117,7 +117,7 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             'flags' => ['progressive'],
             'classes' => ['aspaklarya-action-approve'],
             'infusable' => true,
-            'data' => ['id' => (string)$id]
+            'data' => ['id' => $id]
         ]);
         $html .= $approveButton->toString();
         
@@ -126,7 +126,7 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             'flags' => [],
             'classes' => ['aspaklarya-action-edited'],
             'infusable' => true,
-            'data' => ['id' => (string)$id]
+            'data' => ['id' => $id]
         ]);
         $html .= $editedButton->toString();
         
