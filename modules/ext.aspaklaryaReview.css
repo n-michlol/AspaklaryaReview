@@ -5,6 +5,10 @@
     transition: filter 0.3s, opacity 0.3s;
 }
 
+.aspaklarya-image-wrapper {
+    display: inline-block;
+}
+
 /* חלונית התמונות */
 .aspaklarya-review-dialog {
     max-width: 800px;

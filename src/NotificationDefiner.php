@@ -20,7 +20,13 @@ class NotificationDefiner {
                 'email' => true,
                 'expandable' => true
             ],
-            'immediate' => true
+            'immediate' => true,
+            'user-locators' => [
+                [
+                    'EchoUserLocator::locateFromEventExtra',
+                    ['agent']
+                ]
+            ]
         ];
 
         $notifications['aspaklarya-removed'] = [
@@ -34,7 +40,13 @@ class NotificationDefiner {
                 'email' => true,
                 'expandable' => true
             ],
-            'immediate' => true
+            'immediate' => true,
+            'user-locators' => [
+                [
+                    'EchoUserLocator::locateFromEventExtra',
+                    ['agent']
+                ]
+            ]
         ];
 
         $notifications['aspaklarya-edited'] = [
