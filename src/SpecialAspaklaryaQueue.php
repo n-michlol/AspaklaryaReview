@@ -27,6 +27,8 @@ class SpecialAspaklaryaQueue extends SpecialPage {
         $this->checkPermissions();
         $this->setHeaders();
         $out = $this->getOutput();
+
+        \OOUI\Theme::setSingleton(new \OOUI\BlankTheme());
         
         $out->addModules(['ext.aspaklaryaQueue']);
         $out->setPageTitle($this->msg('aspaklarya-queue-title'));
