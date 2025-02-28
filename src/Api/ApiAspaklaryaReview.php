@@ -78,6 +78,8 @@ class ApiAspaklaryaReview extends ApiBase {
                     if (!$dbw->affectedRows()) {
                         $this->dieWithError('Failed to insert record', 'insertfailed');
                     }
+                    
+                    $this->getResult()->addValue(null, 'success', true);
                     break;
                     
                 case 'remove':
@@ -122,6 +124,8 @@ class ApiAspaklaryaReview extends ApiBase {
                     if ($notificationId) {
                         $this->getResult()->addValue(null, 'notification', $notificationId);
                     }
+                    
+                    $this->getResult()->addValue(null, 'success', true);
                     break;
                     
                 case 'approve':
@@ -165,13 +169,13 @@ class ApiAspaklaryaReview extends ApiBase {
                     if ($notificationId) {
                         $this->getResult()->addValue(null, 'notification', $notificationId);
                     }
+                    
+                    $this->getResult()->addValue(null, 'success', true);
                     break;
                     
                 default:
                     $this->dieWithError('Invalid action', 'invalidaction');
             }
-            
-            $this->getResult()->addValue(null, 'success', true);
         } catch (\Exception $e) {
             wfLogWarning('AspaklaryaReview API error: ' . $e->getMessage());
             $this->dieWithError('Error: ' . $e->getMessage(), 'internalerror');

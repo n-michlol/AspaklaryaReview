@@ -28,6 +28,9 @@
         const api = new mw.Api();
         const pageId = mw.config.get('wgArticleId');
         
+        const filenames = [];
+        const imageElements = {};
+        
         $('img').each(function() {
             const $img = $(this);
             let src = $img.attr('src');
@@ -40,23 +43,46 @@
             let filename = decodeURIComponent(match[1]);
             filename = filename.replace(/^\d+px-/, '');
             
-            api.get({
-                action: 'query',
-                list: 'aspaklaryareview',
-                arqfilename: filename,
-                arqpageid: pageId
-            }).done(function(response) {
-                if (response.query && response.query.aspaklaryareview && 
-                    response.query.aspaklaryareview.length > 0) {
-                    
-                    const $parent = $img.parent();
-                    if (!$parent.hasClass('aspaklarya-image-wrapper')) {
-                        $img.wrap('<div class="aspaklarya-image-wrapper"></div>');
+            filenames.push(filename);
+            
+            if (!imageElements[filename]) {
+                imageElements[filename] = [];
+            }
+            imageElements[filename].push($img);
+        });
+        
+        if (filenames.length === 0) {
+            return;
+        }
+        
+        api.get({
+            action: 'query',
+            list: 'aspaklaryareview',
+            arqpageid: pageId
+        }).done(function(response) {
+            if (response.query && response.query.aspaklaryareview && 
+                response.query.aspaklaryareview.length > 0) {
+                
+                const pendingImages = new Set();
+                response.query.aspaklaryareview.forEach(function(item) {
+                    pendingImages.add(item.filename);
+                });
+                
+                Object.keys(imageElements).forEach(function(filename) {
+                    if (pendingImages.has(filename)) {
+                        imageElements[filename].forEach(function($img) {
+                            const $parent = $img.parent();
+                            if (!$parent.hasClass('aspaklarya-image-wrapper')) {
+                                $img.wrap('<div class="aspaklarya-image-wrapper"></div>');
+                            }
+                            
+                            $img.parent().addClass('aspaklarya-hidden');
+                        });
                     }
-                    
-                    $img.parent().addClass('aspaklarya-hidden');
-                }
-            });
+                });
+            }
+        }).fail(function(error) {
+            console.error('Failed to check submitted images:', error);
         });
     }
 
@@ -74,18 +100,20 @@
             let filename = decodeURIComponent(match[1]);
             filename = filename.replace(/^\d+px-/, '');
             
-            images.push({
-                filename: filename,
-                element: $img,
-                src: src
-            });
+            if (!images.some(img => img.filename === filename)) {
+                images.push({
+                    filename: filename,
+                    element: $img,
+                    src: src
+                });
+            }
         });
 
         if (images.length === 0) {
             if (mw.notify) {
-                mw.notify('No images found on this page.');
+                mw.notify(mw.msg('aspaklarya-review-no-images'));
             } else {
-                alert('No images found on this page.');
+                alert(mw.msg('aspaklarya-review-no-images'));
             }
             return;
         }
@@ -146,9 +174,9 @@
             
             if (selectedImages.length === 0) {
                 if (mw.notify) {
-                    mw.notify('No images selected.');
+                    mw.notify(mw.msg('aspaklarya-review-no-selection'));
                 } else {
-                    alert('No images selected.');
+                    alert(mw.msg('aspaklarya-review-no-selection'));
                 }
                 return;
             }
@@ -178,7 +206,7 @@
             }
         };
         
-        const notification = notificationSystem.notify('Submitting images...', {autoHide: false});
+        const notification = notificationSystem.notify(mw.msg('aspaklarya-review-submitting'), {autoHide: false});
         
         const promises = images.map(image => {
             return api.postWithToken('csrf', {
@@ -202,15 +230,15 @@
                 errorCount++;
                 if (mw.notify) {
                     if (data && data.exception) {
-                        mw.notify('Error submitting image: ' + data.exception, {type: 'error'});
+                        mw.notify(mw.msg('aspaklarya-review-error', data.exception), {type: 'error'});
                     } else {
-                        mw.notify('Error submitting image: ' + image.filename, {type: 'error'});
+                        mw.notify(mw.msg('aspaklarya-review-error', image.filename), {type: 'error'});
                     }
                 } else {
                     if (data && data.exception) {
-                        alert('Error submitting image: ' + data.exception);
+                        alert(mw.msg('aspaklarya-review-error', data.exception));
                     } else {
-                        alert('Error submitting image: ' + image.filename);
+                        alert(mw.msg('aspaklarya-review-error', image.filename));
                     }
                 }
                 return null;
@@ -230,9 +258,9 @@
             
             if (errorCount > 0) {
                 if (mw.notify) {
-                    mw.notify('Some images failed to submit. Please try again.', {type: 'error'});
+                    mw.notify(mw.msg('aspaklarya-review-partial-error'), {type: 'error'});
                 } else {
-                    alert('Some images failed to submit. Please try again.');
+                    alert(mw.msg('aspaklarya-review-partial-error'));
                 }
             }
         });
