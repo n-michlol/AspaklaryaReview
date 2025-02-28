@@ -35,6 +35,10 @@ class ApiAspaklaryaReview extends ApiBase {
         
         switch ($action) {
             case 'submit':
+                if (!isset($params['filename']) || !isset($params['pageid'])) {
+                    $this->dieWithError('Missing required parameters', 'missingparam');
+                }
+                
                 $dbw->insert(
                     'aspaklarya_review_queue',
                     [
@@ -43,8 +47,13 @@ class ApiAspaklaryaReview extends ApiBase {
                         'arq_requester' => $user->getId(),
                         'arq_timestamp' => $dbw->timestamp()
                     ],
-                    __METHOD__
+                    __METHOD__,
+                    ['IGNORE']
                 );
+                
+                if (!$dbw->affectedRows()) {
+                    $this->dieWithError('Failed to insert record', 'insertfailed');
+                }
                 break;
                 
             case 'remove':
@@ -128,7 +137,7 @@ class ApiAspaklaryaReview extends ApiBase {
         ];
         
         $notification = $notificationManager->createNotification(
-            $userId,
+            [$userId],
             'aspaklarya-' . $type,
             $extra
         );
@@ -165,7 +174,7 @@ class ApiAspaklaryaReview extends ApiBase {
             $text = $this->removeImageFromText($text, $filename);
             
             $updater = $page->newPageUpdater($this->getUser());
-            $updater->setContent('text', new WikitextContent($text));
+            $updater->setContent('main', new WikitextContent($text)); 
             $updater->saveRevision(
                 CommentStoreComment::newUnsavedComment('הסרת תמונה'),
                 EDIT_MINOR | EDIT_FORCE_BOT
@@ -173,10 +182,10 @@ class ApiAspaklaryaReview extends ApiBase {
         }
         
         $fileTitle = Title::makeTitle(NS_FILE, $filename);
-        if (!$fileTitle->exists()) {
+        if ($fileTitle->exists()) {
             $page = WikiPage::factory($fileTitle);
             $updater = $page->newPageUpdater($this->getUser());
-            $updater->setContent('text', new WikitextContent('#הפניה [[קובץ:תמונה חילופית.jpg]]'));
+            $updater->setContent('main', new WikitextContent('#הפניה [[קובץ:תמונה חילופית.jpg]]'));
             $updater->saveRevision(
                 CommentStoreComment::newUnsavedComment('חסימת תמונה'),
                 EDIT_MINOR | EDIT_FORCE_BOT
