@@ -9,6 +9,8 @@ use WikiPage;
 use Title;
 use CommentStoreComment;
 use WikitextContent;
+use MediaWiki\Revision\SlotRecord;
+use MediaWiki\MediaWikiServices;
 
 class ApiAspaklaryaReview extends ApiBase {
     private $loadBalancer;
@@ -29,6 +31,10 @@ class ApiAspaklaryaReview extends ApiBase {
         $user = $this->getUser();
         $params = $this->extractRequestParams();
         
+        if (!$user->isRegistered()) {
+            $this->dieWithError('You must be logged in to use this feature', 'notloggedin');
+        }
+        
         $dbw = $this->loadBalancer->getConnection(DB_PRIMARY);
         
         $action = $params['do'] ?? 'submit';
@@ -39,35 +45,59 @@ class ApiAspaklaryaReview extends ApiBase {
                     $this->dieWithError('Missing required parameters', 'missingparam');
                 }
                 
-                $dbw->insert(
-                    'aspaklarya_review_queue',
-                    [
-                        'arq_filename' => $params['filename'],
-                        'arq_page_id' => $params['pageid'],
-                        'arq_requester' => $user->getId(),
-                        'arq_timestamp' => $dbw->timestamp()
-                    ],
-                    __METHOD__,
-                    ['IGNORE']
-                );
-                
-                if (!$dbw->affectedRows()) {
-                    $this->dieWithError('Failed to insert record', 'insertfailed');
+                try {
+                    $dbw->insert(
+                        'aspaklarya_review_queue',
+                        [
+                            'arq_filename' => $params['filename'],
+                            'arq_page_id' => (int)$params['pageid'],
+                            'arq_requester' => $user->getId(),
+                            'arq_timestamp' => $dbw->timestamp()
+                        ],
+                        __METHOD__,
+                        ['IGNORE']
+                    );
+                    
+                    if (!$dbw->affectedRows()) {
+                        $exists = $dbw->selectRow(
+                            'aspaklarya_review_queue',
+                            'arq_id',
+                            [
+                                'arq_filename' => $params['filename'],
+                                'arq_page_id' => (int)$params['pageid'],
+                                'arq_status' => 'pending'
+                            ]
+                        );
+                        
+                        if (!$exists) {
+                            $this->dieWithError('Failed to insert record', 'insertfailed');
+                        }
+                    }
+                } catch (\Exception $e) {
+                    $this->dieWithError('Database error: ' . $e->getMessage(), 'dberror');
                 }
                 break;
                 
             case 'remove':
                 if (!$user->isAllowed('aspaklarya-review')) {
-                    $this->dieWithError('permissiondenied');
+                    $this->dieWithError('You do not have permission to review images', 'permissiondenied');
                 }
                 
-                $row = $dbw->selectRow(
-                    'aspaklarya_review_queue',
-                    '*',
-                    ['arq_id' => $params['id']]
-                );
+                if (!isset($params['id'])) {
+                    $this->dieWithError('Missing ID parameter', 'missingparam');
+                }
                 
-                if ($row) {
+                try {
+                    $row = $dbw->selectRow(
+                        'aspaklarya_review_queue',
+                        '*',
+                        ['arq_id' => (int)$params['id']]
+                    );
+                    
+                    if (!$row) {
+                        $this->dieWithError('Record not found', 'notfound');
+                    }
+                    
                     $dbw->update(
                         'aspaklarya_review_queue',
                         [
@@ -75,7 +105,7 @@ class ApiAspaklaryaReview extends ApiBase {
                             'arq_reviewer' => $user->getId(),
                             'arq_review_timestamp' => $dbw->timestamp()
                         ],
-                        ['arq_id' => $params['id']]
+                        ['arq_id' => (int)$params['id']]
                     );
                     
                     $this->removeImage($row->arq_filename);
@@ -87,22 +117,32 @@ class ApiAspaklaryaReview extends ApiBase {
                     );
                     
                     $this->getResult()->addValue(null, 'notification', $notificationId);
+                } catch (\Exception $e) {
+                    $this->dieWithError('Error processing request: ' . $e->getMessage(), 'processingerror');
                 }
                 break;
                 
             case 'approve':
             case 'edited':
                 if (!$user->isAllowed('aspaklarya-review')) {
-                    $this->dieWithError('permissiondenied');
+                    $this->dieWithError('You do not have permission to review images', 'permissiondenied');
                 }
                 
-                $row = $dbw->selectRow(
-                    'aspaklarya_review_queue',
-                    '*',
-                    ['arq_id' => $params['id']]
-                );
+                if (!isset($params['id'])) {
+                    $this->dieWithError('Missing ID parameter', 'missingparam');
+                }
                 
-                if ($row) {
+                try {
+                    $row = $dbw->selectRow(
+                        'aspaklarya_review_queue',
+                        '*',
+                        ['arq_id' => (int)$params['id']]
+                    );
+                    
+                    if (!$row) {
+                        $this->dieWithError('Record not found', 'notfound');
+                    }
+                    
                     $dbw->update(
                         'aspaklarya_review_queue',
                         [
@@ -110,7 +150,7 @@ class ApiAspaklaryaReview extends ApiBase {
                             'arq_reviewer' => $user->getId(),
                             'arq_review_timestamp' => $dbw->timestamp()
                         ],
-                        ['arq_id' => $params['id']]
+                        ['arq_id' => (int)$params['id']]
                     );
                     
                     $notificationId = $this->sendNotification(
@@ -120,76 +160,94 @@ class ApiAspaklaryaReview extends ApiBase {
                     );
                     
                     $this->getResult()->addValue(null, 'notification', $notificationId);
+                } catch (\Exception $e) {
+                    $this->dieWithError('Error processing request: ' . $e->getMessage(), 'processingerror');
                 }
                 break;
+                
+            default:
+                $this->dieWithError('Invalid action', 'invalidaction');
         }
         
         $this->getResult()->addValue(null, 'success', true);
     }
 
     private function sendNotification($userId, $type, $filename) {
-        $notificationManager = \MediaWiki\MediaWikiServices::getInstance()
-            ->getService('EchoNotificationManager');
-        
-        $extra = [
-            'filename' => $filename,
-            'reviewer' => $this->getUser()->getName()
-        ];
-        
-        $notification = $notificationManager->createNotification(
-            [$userId],
-            'aspaklarya-' . $type,
-            $extra
-        );
-        
-        return $notification->getId();
+        try {
+            $services = MediaWikiServices::getInstance();
+            if (!$services->hasService('EchoNotificationManager')) {
+                return null;
+            }
+            
+            $notificationManager = $services->getService('EchoNotificationManager');
+            
+            $extra = [
+                'filename' => $filename,
+                'reviewer' => $this->getUser()->getName()
+            ];
+            
+            $notification = $notificationManager->createNotification(
+                [$userId],
+                'aspaklarya-' . $type,
+                $extra
+            );
+            
+            return $notification->getId();
+        } catch (\Exception $e) {
+            wfLogWarning('Failed to send notification: ' . $e->getMessage());
+            return null;
+        }
     }
 
     private function removeImage($filename) {
-        $services = \MediaWiki\MediaWikiServices::getInstance();
-        $dbr = $this->loadBalancer->getConnection(DB_REPLICA);
-        
-        $res = $dbr->select(
-            'imagelinks',
-            'il_from',
-            ['il_to' => str_replace(' ', '_', $filename)],
-            __METHOD__
-        );
-        
-        foreach ($res as $row) {
-            $title = Title::newFromID($row->il_from);
-            if (!$title) {
-                continue;
+        try {
+            $services = MediaWikiServices::getInstance();
+            $dbr = $this->loadBalancer->getConnection(DB_REPLICA);
+            
+            $res = $dbr->select(
+                'imagelinks',
+                'il_from',
+                ['il_to' => str_replace(' ', '_', $filename)],
+                __METHOD__
+            );
+            
+            foreach ($res as $row) {
+                $title = Title::newFromID($row->il_from);
+                if (!$title) {
+                    continue;
+                }
+                
+                $page = WikiPage::factory($title);
+                $content = $page->getContent();
+                
+                if (!$content) {
+                    continue;
+                }
+                
+                $text = $content->getText();
+                
+                $text = $this->removeImageFromText($text, $filename);
+                
+                $updater = $page->newPageUpdater($this->getUser());
+                $updater->setContent(SlotRecord::MAIN, new WikitextContent($text)); 
+                $updater->saveRevision(
+                    CommentStoreComment::newUnsavedComment('הסרת תמונה'),
+                    EDIT_MINOR | EDIT_FORCE_BOT
+                );
             }
             
-            $page = WikiPage::factory($title);
-            $content = $page->getContent();
-            
-            if (!$content) {
-                continue;
+            $fileTitle = Title::makeTitle(NS_FILE, $filename);
+            if ($fileTitle->exists()) {
+                $page = WikiPage::factory($fileTitle);
+                $updater = $page->newPageUpdater($this->getUser());
+                $updater->setContent(SlotRecord::MAIN, new WikitextContent('#הפניה [[קובץ:תמונה חילופית.jpg]]'));
+                $updater->saveRevision(
+                    CommentStoreComment::newUnsavedComment('חסימת תמונה'),
+                    EDIT_MINOR | EDIT_FORCE_BOT
+                );
             }
-            
-            $text = $content->getText();
-            
-            $text = $this->removeImageFromText($text, $filename);
-            
-            $updater = $page->newPageUpdater($this->getUser());
-            $updater->setContent('main', new WikitextContent($text)); 
-            $updater->saveRevision(
-                CommentStoreComment::newUnsavedComment('הסרת תמונה'),
-                EDIT_MINOR | EDIT_FORCE_BOT
-            );
-        }
-        
-        $fileTitle = Title::makeTitle(NS_FILE, $filename);
-        if ($fileTitle->exists()) {
-            $page = WikiPage::factory($fileTitle);
-            $updater = $page->newPageUpdater($this->getUser());
-            $updater->setContent('main', new WikitextContent('#הפניה [[קובץ:תמונה חילופית.jpg]]'));
-            $updater->saveRevision(
-                CommentStoreComment::newUnsavedComment('חסימת תמונה'),
-                EDIT_MINOR | EDIT_FORCE_BOT
-            );
+        } catch (\Exception $e) {
+            wfLogWarning('Error removing image: ' . $e->getMessage());
         }
     }
 

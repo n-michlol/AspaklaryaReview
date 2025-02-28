@@ -128,7 +128,12 @@
                 pageid: mw.config.get('wgArticleId')
             }).done(function(response) {
                 if (response.success) {
-                    image.element.addClass('aspaklarya-hidden');
+                    const $parent = image.element.parent();
+                    if (!$parent.hasClass('aspaklarya-image-wrapper')) {
+                        image.element.wrap('<div class="aspaklarya-image-wrapper"></div>');
+                    }
+                    
+                    image.element.parent().addClass('aspaklarya-hidden');
                     successCount++;
                     
                     if (successCount === images.length) {
@@ -136,8 +141,12 @@
                     }
                 }
             }).fail(function(code, data) {
-                mw.notify('Error submitting image: ' + image.filename, {type: 'error'});
                 console.error('Error submitting image:', code, data);
+                if (data && data.exception) {
+                    mw.notify('Error submitting image: ' + data.exception, {type: 'error'});
+                } else {
+                    mw.notify('Error submitting image: ' + image.filename, {type: 'error'});
+                }
             });
         });
     }

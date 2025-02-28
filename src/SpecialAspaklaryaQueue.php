@@ -28,43 +28,46 @@ class SpecialAspaklaryaQueue extends SpecialPage {
         $this->setHeaders();
         $out = $this->getOutput();
 
-        \OOUI\Theme::setSingleton(new \OOUI\BlankTheme());
-        
-        $out->addModules(['ext.aspaklaryaQueue']);
+        $out->enableOOUI();
+        $out->addModules(['ext.aspaklaryaQueue', 'oojs-ui-core', 'oojs-ui-widgets']);
         $out->setPageTitle($this->msg('aspaklarya-queue-title'));
 
         $dbr = $this->loadBalancer->getConnection(DB_REPLICA);
         
-        $res = $dbr->select(
-            'aspaklarya_review_queue',
-            '*',
-            ['arq_status' => 'pending'],
-            __METHOD__,
-            ['ORDER BY' => 'arq_timestamp DESC']
-        );
-
-        if ($res->numRows() === 0) {
-            $out->addWikiMsg('aspaklarya-queue-empty');
-            return;
-        }
-
-        $html = '<div class="aspaklarya-queue-list">';
-        
-        foreach ($res as $row) {
-            $requester = $this->userFactory->newFromId($row->arq_requester);
-            $filename = $row->arq_filename;
-            
-            $html .= $this->formatQueueItem(
-                $row->arq_id,
-                $filename,
-                $requester->getName(),
-                $row->arq_timestamp,
-                $row->arq_page_id
+        try {
+            $res = $dbr->select(
+                'aspaklarya_review_queue',
+                '*',
+                ['arq_status' => 'pending'],
+                __METHOD__,
+                ['ORDER BY' => 'arq_timestamp DESC']
             );
+
+            if ($res->numRows() === 0) {
+                $out->addWikiMsg('aspaklarya-queue-empty');
+                return;
+            }
+
+            $html = '<div class="aspaklarya-queue-list">';
+            
+            foreach ($res as $row) {
+                $requester = $this->userFactory->newFromId($row->arq_requester);
+                $filename = $row->arq_filename;
+                
+                $html .= $this->formatQueueItem(
+                    $row->arq_id,
+                    $filename,
+                    $requester->getName(),
+                    $row->arq_timestamp,
+                    $row->arq_page_id
+                );
+            }
+            
+            $html .= '</div>';
+            $out->addHTML($html);
+        } catch (\Exception $e) {
+            $out->addHTML(Html::errorBox('Error loading review queue: ' . $e->getMessage()));
         }
-        
-        $html .= '</div>';
-        $out->addHTML($html);
     }
 
     private function formatQueueItem($id, $filename, $requester, $timestamp, $pageId) {
