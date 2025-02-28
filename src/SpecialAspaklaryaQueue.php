@@ -9,6 +9,7 @@ use Wikimedia\Rdbms\ILoadBalancer;
 use Status;
 use OOUI;
 use Html;
+use MediaWiki\MediaWikiServices;
 
 class SpecialAspaklaryaQueue extends SpecialPage {
     private $loadBalancer;
@@ -80,7 +81,10 @@ class SpecialAspaklaryaQueue extends SpecialPage {
         ]);
         
         if ($fileTitle && $fileTitle->exists()) {
-            $file = wfFindFile($fileTitle);
+            $services = MediaWikiServices::getInstance();
+            $repoGroup = $services->getRepoGroup();
+            $file = $repoGroup->findFile($fileTitle);
+            
             if ($file) {
                 $thumb = $file->transform(['width' => 300]);
                 if ($thumb) {
