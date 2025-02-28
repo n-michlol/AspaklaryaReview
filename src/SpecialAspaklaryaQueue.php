@@ -26,6 +26,9 @@ class SpecialAspaklaryaQueue extends SpecialPage {
     public function execute($par) {
         $this->checkPermissions();
         $this->setHeaders();
+        
+        \OOUI\Theme::setSingleton(new \OOUI\BlankTheme());
+        
         $out = $this->getOutput();
         
         $out->addModules(['ext.aspaklaryaQueue']);
