@@ -11,6 +11,7 @@ use CommentStoreComment;
 use WikitextContent;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\MediaWikiServices;
+use Wikimedia\ParamValidator\ParamValidator;
 
 class ApiAspaklaryaReview extends ApiBase {
     private $loadBalancer;
@@ -285,7 +286,7 @@ class ApiAspaklaryaReview extends ApiBase {
             'do' => [
                 ApiBase::PARAM_TYPE => ['submit', 'remove', 'approve', 'edited'],
                 ApiBase::PARAM_REQUIRED => false,
-                ApiBase::PARAM_DEFAULT => 'submit'
+                ParamValidator::PARAM_DEFAULT => 'submit'
             ],
             'id' => [
                 ApiBase::PARAM_TYPE => 'integer',
