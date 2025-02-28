@@ -26,38 +26,68 @@
         const images = [];
         $('img').each(function() {
             const $img = $(this);
-            const filename = $img.attr('src').split('/').pop();
+            let src = $img.attr('src');
+            let match = src.match(/\/([^\/]+\.(jpg|jpeg|png|gif|svg))(?:\?|$)/i);
+            
+            if (!match) {
+                return;
+            }
+            
+            let filename = decodeURIComponent(match[1]);
+            filename = filename.replace(/^\d+px-/, '');
             
             images.push({
                 filename: filename,
                 element: $img,
-                selected: false
+                src: src
             });
         });
 
-        const dialog = new OO.ui.MessageDialog({
-            size: 'large'
-        });
+        if (images.length === 0) {
+            mw.notify('No images found on this page.');
+            return;
+        }
 
-        const imageCheckboxes = images.map(image => {
-            return new OO.ui.CheckboxInputWidget({
+        const dialogContent = $('<div class="aspaklarya-review-dialog"></div>');
+        const imagesContainer = $('<div class="aspaklarya-review-images"></div>');
+        
+        images.forEach(function(image, index) {
+            const imageItem = $('<div class="aspaklarya-review-image-item"></div>');
+            imageItem.append($('<img>').attr('src', image.src).attr('alt', image.filename));
+            
+            const checkbox = new OO.ui.CheckboxInputWidget({
                 selected: false,
-                label: image.filename
+                value: index
             });
+            
+            imageItem.append($('<div></div>').append(
+                $('<label></label>').text(image.filename).prepend(checkbox.$element)
+            ));
+            
+            imagesContainer.append(imageItem);
+            image.checkbox = checkbox;
         });
+        
+        dialogContent.append(imagesContainer);
 
         const submitButton = new OO.ui.ButtonWidget({
             label: mw.msg('aspaklarya-review-submit'),
             flags: ['primary', 'progressive']
         });
 
-        submitButton.on('click', function() {
-            const selectedImages = images.filter((img, index) => 
-                imageCheckboxes[index].isSelected()
-            );
-            
-            submitForReview(selectedImages);
-            dialog.close();
+        const cancelButton = new OO.ui.ButtonWidget({
+            label: mw.msg('aspaklarya-review-cancel'),
+            flags: ['destructive']
+        });
+
+        const buttonsContainer = $('<div class="aspaklarya-review-buttons"></div>')
+            .append(submitButton.$element)
+            .append(cancelButton.$element);
+        
+        dialogContent.append(buttonsContainer);
+
+        const dialog = new OO.ui.MessageDialog({
+            size: 'large'
         });
 
         const windowManager = new OO.ui.WindowManager();
@@ -66,14 +96,29 @@
         
         windowManager.openWindow(dialog, {
             title: mw.msg('aspaklarya-review-title'),
-            message: $('<div>')
-                .append(imageCheckboxes.map(checkbox => checkbox.$element))
-                .append(submitButton.$element)
+            message: dialogContent
+        });
+
+        submitButton.on('click', function() {
+            const selectedImages = images.filter(img => img.checkbox.isSelected());
+            
+            if (selectedImages.length === 0) {
+                mw.notify('No images selected.');
+                return;
+            }
+            
+            submitForReview(selectedImages);
+            dialog.close();
+        });
+
+        cancelButton.on('click', function() {
+            dialog.close();
         });
     }
 
     function submitForReview(images) {
         const api = new mw.Api();
+        let successCount = 0;
         
         images.forEach(image => {
             api.postWithToken('csrf', {
@@ -81,10 +126,18 @@
                 do: 'submit',
                 filename: image.filename,
                 pageid: mw.config.get('wgArticleId')
-            }).done(function() {
-                image.element.addClass('aspaklarya-hidden');
-                
-                mw.notify(mw.msg('aspaklarya-review-success'));
+            }).done(function(response) {
+                if (response.success) {
+                    image.element.addClass('aspaklarya-hidden');
+                    successCount++;
+                    
+                    if (successCount === images.length) {
+                        mw.notify(mw.msg('aspaklarya-review-success'), {type: 'success'});
+                    }
+                }
+            }).fail(function(code, data) {
+                mw.notify('Error submitting image: ' + image.filename, {type: 'error'});
+                console.error('Error submitting image:', code, data);
             });
         });
     }

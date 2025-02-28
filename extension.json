@@ -108,7 +108,7 @@
     },
     "Hooks": {
         "BeforePageDisplay": "main",
-        "LoadExtensionSchemaUpdates": "main",
+        "LoadExtensionSchemaUpdates": "MediaWiki\\Extension\\AspaklaryaReview\\Hooks::onLoadExtensionSchemaUpdates",
         "BeforeCreateEchoEvent": "notifications"
     },
     "GroupPermissions": {
