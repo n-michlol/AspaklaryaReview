@@ -78,6 +78,7 @@
         images.forEach(image => {
             api.postWithToken('csrf', {
                 action: 'aspaklaryareview',
+                do: 'submit',
                 filename: image.filename,
                 pageid: mw.config.get('wgArticleId')
             }).done(function() {

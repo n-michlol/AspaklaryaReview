@@ -104,7 +104,7 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             'classes' => ['aspaklarya-action-remove'],
             'data' => ['id' => $id]
         ]);
-        $html .= $removeButton;
+        $html .= $removeButton->toString();
         
         $approveButton = new OOUI\ButtonWidget([
             'label' => $this->msg('aspaklarya-queue-approve')->text(),
@@ -112,7 +112,7 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             'classes' => ['aspaklarya-action-approve'],
             'data' => ['id' => $id]
         ]);
-        $html .= $approveButton;
+        $html .= $approveButton->toString();
         
         $editedButton = new OOUI\ButtonWidget([
             'label' => $this->msg('aspaklarya-queue-edited')->text(),
@@ -120,7 +120,7 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             'classes' => ['aspaklarya-action-edited'],
             'data' => ['id' => $id]
         ]);
-        $html .= $editedButton;
+        $html .= $editedButton->toString();
         
         $html .= '</div>';
         $html .= Html::closeElement('div');

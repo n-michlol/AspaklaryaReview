@@ -2,7 +2,7 @@
 $specialPageAliases = [];
 
 $specialPageAliases['en'] = [
-    'AspaklaryaQueue' => ['AspaklaryaImage'],
+    'AspaklaryaQueue' => ['AspaklaryaImageQueue', 'AspaklaryaImage'],
 ];
 
 $specialPageAliases['he'] = [
