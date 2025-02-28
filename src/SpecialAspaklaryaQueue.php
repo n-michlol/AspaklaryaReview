@@ -7,6 +7,8 @@ use HTMLForm;
 use MediaWiki\User\UserFactory;
 use Wikimedia\Rdbms\ILoadBalancer;
 use Status;
+use OOUI;
+use Html;
 
 class SpecialAspaklaryaQueue extends SpecialPage {
     private $loadBalancer;
@@ -26,7 +28,7 @@ class SpecialAspaklaryaQueue extends SpecialPage {
         $this->setHeaders();
         $out = $this->getOutput();
         
-        $out->addModules(['ext.aspaklaryaReview']);
+        $out->addModules(['ext.aspaklaryaQueue']);
         $out->setPageTitle($this->msg('aspaklarya-queue-title'));
 
         $dbr = $this->loadBalancer->getConnection(DB_REPLICA);
@@ -83,41 +85,50 @@ class SpecialAspaklaryaQueue extends SpecialPage {
         }
         
         $html .= Html::element('h3', [], $filename);
-        $html .= Html::element('p', [], $this->msg('aspaklarya-queue-requested-by', $requester)->text());
-        $html .= Html::element('p', [], $this->msg('aspaklarya-queue-timestamp', $timestamp)->text());
+        $html .= Html::element('div', ['class' => 'aspaklarya-queue-info'], 
+            $this->msg('aspaklarya-queue-requested-by', $requester)->text());
+        $html .= Html::element('div', ['class' => 'aspaklarya-queue-info'], 
+            $this->msg('aspaklarya-queue-timestamp', wfTimestamp(TS_RFC2822, $timestamp))->text());
         
         if ($title) {
-            $html .= Html::element('p', [], 
+            $html .= Html::element('div', ['class' => 'aspaklarya-queue-info'], 
                 $this->msg('aspaklarya-queue-page', $title->getPrefixedText())->text()
             );
         }
         
-        $html .= Html::openElement('div', ['class' => 'aspaklarya-queue-actions']);
+        $html .= '<div class="aspaklarya-queue-actions">';
         
-        $html .= new OOUI\ButtonWidget([
+        $removeButton = new OOUI\ButtonWidget([
             'label' => $this->msg('aspaklarya-queue-remove')->text(),
-            'flags' => ['progressive'],
+            'flags' => ['destructive'],
             'classes' => ['aspaklarya-action-remove'],
             'data' => ['id' => $id]
         ]);
+        $html .= $removeButton;
         
-        $html .= new OOUI\ButtonWidget([
+        $approveButton = new OOUI\ButtonWidget([
             'label' => $this->msg('aspaklarya-queue-approve')->text(),
             'flags' => ['progressive'],
             'classes' => ['aspaklarya-action-approve'],
             'data' => ['id' => $id]
         ]);
+        $html .= $approveButton;
         
-        $html .= new OOUI\ButtonWidget([
+        $editedButton = new OOUI\ButtonWidget([
             'label' => $this->msg('aspaklarya-queue-edited')->text(),
-            'flags' => ['progressive'],
+            'flags' => [],
             'classes' => ['aspaklarya-action-edited'],
             'data' => ['id' => $id]
         ]);
+        $html .= $editedButton;
         
-        $html .= Html::closeElement('div');
+        $html .= '</div>';
         $html .= Html::closeElement('div');
         
         return $html;
+    }
+
+    protected function getGroupName() {
+        return 'media';
     }
 }

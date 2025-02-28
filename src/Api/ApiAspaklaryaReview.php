@@ -5,6 +5,10 @@ namespace MediaWiki\Extension\AspaklaryaReview\Api;
 use ApiBase;
 use MediaWiki\User\UserFactory;
 use Wikimedia\Rdbms\ILoadBalancer;
+use WikiPage;
+use Title;
+use CommentStoreComment;
+use WikitextContent;
 
 class ApiAspaklaryaReview extends ApiBase {
     private $loadBalancer;
@@ -29,7 +33,7 @@ class ApiAspaklaryaReview extends ApiBase {
         
         switch ($params['do']) {
             case 'submit':
-                ## Add to review queue
+                // Add to review queue
                 $dbw->insert(
                     'aspaklarya_review_queue',
                     [
@@ -54,7 +58,7 @@ class ApiAspaklaryaReview extends ApiBase {
                 );
                 
                 if ($row) {
-                    ## Update status
+                    // Update status
                     $dbw->update(
                         'aspaklarya_review_queue',
                         [
@@ -67,12 +71,14 @@ class ApiAspaklaryaReview extends ApiBase {
                     
                     $this->removeImage($row->arq_filename);
                     
-                    ## Send notification
-                    $this->sendNotification(
+                    // Send notification
+                    $notificationId = $this->sendNotification(
                         $row->arq_requester,
                         'removed',
                         $row->arq_filename
                     );
+                    
+                    $this->getResult()->addValue(null, 'notification', $notificationId);
                 }
                 break;
                 
@@ -99,20 +105,18 @@ class ApiAspaklaryaReview extends ApiBase {
                         ['arq_id' => $params['id']]
                     );
                     
-                    $this->sendNotification(
+                    $notificationId = $this->sendNotification(
                         $row->arq_requester,
                         $params['do'],
                         $row->arq_filename
                     );
+                    
+                    $this->getResult()->addValue(null, 'notification', $notificationId);
                 }
                 break;
         }
         
         $this->getResult()->addValue(null, 'success', true);
-    }
-
-    private function removeImage($filename) {
-
     }
 
     private function sendNotification($userId, $type, $filename) {
@@ -130,14 +134,14 @@ class ApiAspaklaryaReview extends ApiBase {
             $extra
         );
         
-        $this->getResult()->addValue(null, 'notification', $notification->getId());
+        return $notification->getId();
     }
 
     private function removeImage($filename) {
         $services = \MediaWiki\MediaWikiServices::getInstance();
         $dbr = $this->loadBalancer->getConnection(DB_REPLICA);
         
-        ## Get all pages that use this file
+        // Get all pages that use this file
         $res = $dbr->select(
             'imagelinks',
             'il_from',
@@ -146,12 +150,12 @@ class ApiAspaklaryaReview extends ApiBase {
         );
         
         foreach ($res as $row) {
-            $title = \Title::newFromID($row->il_from);
+            $title = Title::newFromID($row->il_from);
             if (!$title) {
                 continue;
             }
             
-            $page = \WikiPage::factory($title);
+            $page = WikiPage::factory($title);
             $content = $page->getContent();
             
             if (!$content) {
@@ -160,24 +164,24 @@ class ApiAspaklaryaReview extends ApiBase {
             
             $text = $content->getText();
             
-            $text = $this->removeImageFromText($text, $filename); // Remove image using regex patterns from your JS code
+            $text = $this->removeImageFromText($text, $filename); // Remove image using regex patterns
             
             $updater = $page->newPageUpdater($this->getUser());
-            $updater->setContent('text', new \WikitextContent($text));
+            $updater->setContent('text', new WikitextContent($text));
             $updater->saveRevision(
-                \CommentStoreComment::newUnsavedComment('הסרת תמונה'),
+                CommentStoreComment::newUnsavedComment('הסרת תמונה'),
                 EDIT_MINOR | EDIT_FORCE_BOT
             );
         }
         
-        ## Create redirect page if needed
-        $fileTitle = \Title::makeTitle(NS_FILE, $filename);
+        // Create redirect page if needed
+        $fileTitle = Title::makeTitle(NS_FILE, $filename);
         if (!$fileTitle->exists()) {
-            $page = \WikiPage::factory($fileTitle);
+            $page = WikiPage::factory($fileTitle);
             $updater = $page->newPageUpdater($this->getUser());
-            $updater->setContent('text', new \WikitextContent('#הפניה [[קובץ:תמונה חילופית.jpg]]'));
+            $updater->setContent('text', new WikitextContent('#הפניה [[קובץ:תמונה חילופית.jpg]]'));
             $updater->saveRevision(
-                \CommentStoreComment::newUnsavedComment('חסימת תמונה'),
+                CommentStoreComment::newUnsavedComment('חסימת תמונה'),
                 EDIT_MINOR | EDIT_FORCE_BOT
             );
         }
@@ -187,7 +191,7 @@ class ApiAspaklaryaReview extends ApiBase {
         $filename = preg_quote($filename, '/');
         $filename = str_replace('\\s', '[_\\s]', $filename);
         
-        ## Gallery pattern
+        // Gallery pattern
         $text = preg_replace(
             '/<gallery([^>]*)>\s*' . $filename . '\s*(\|[^\n]*\n|\n)/is',
             '<gallery$1>',
