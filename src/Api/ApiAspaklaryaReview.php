@@ -39,59 +39,60 @@ class ApiAspaklaryaReview extends ApiBase {
         
         $action = $params['do'] ?? 'submit';
         
-        switch ($action) {
-            case 'submit':
-                if (!isset($params['filename']) || !isset($params['pageid'])) {
-                    $this->dieWithError('Missing required parameters', 'missingparam');
-                }
-                
-                try {
+        try {
+            switch ($action) {
+                case 'submit':
+                    if (!isset($params['filename']) || !isset($params['pageid'])) {
+                        $this->dieWithError('Missing required parameters', 'missingparam');
+                    }
+                    
+                    $exists = $dbw->selectRow(
+                        'aspaklarya_review_queue',
+                        'arq_id',
+                        [
+                            'arq_filename' => $params['filename'],
+                            'arq_page_id' => (int)$params['pageid'],
+                            'arq_status' => 'pending'
+                        ],
+                        __METHOD__
+                    );
+                    
+                    if ($exists) {
+                        $this->getResult()->addValue(null, 'success', true);
+                        return;
+                    }
+                    
                     $dbw->insert(
                         'aspaklarya_review_queue',
                         [
                             'arq_filename' => $params['filename'],
                             'arq_page_id' => (int)$params['pageid'],
                             'arq_requester' => $user->getId(),
-                            'arq_timestamp' => $dbw->timestamp()
+                            'arq_timestamp' => $dbw->timestamp(),
+                            'arq_status' => 'pending'
                         ],
-                        __METHOD__,
-                        ['IGNORE']
+                        __METHOD__
                     );
                     
                     if (!$dbw->affectedRows()) {
-                        $exists = $dbw->selectRow(
-                            'aspaklarya_review_queue',
-                            'arq_id',
-                            [
-                                'arq_filename' => $params['filename'],
-                                'arq_page_id' => (int)$params['pageid'],
-                                'arq_status' => 'pending'
-                            ]
-                        );
-                        
-                        if (!$exists) {
-                            $this->dieWithError('Failed to insert record', 'insertfailed');
-                        }
+                        $this->dieWithError('Failed to insert record', 'insertfailed');
                     }
-                } catch (\Exception $e) {
-                    $this->dieWithError('Database error: ' . $e->getMessage(), 'dberror');
-                }
-                break;
-                
-            case 'remove':
-                if (!$user->isAllowed('aspaklarya-review')) {
-                    $this->dieWithError('You do not have permission to review images', 'permissiondenied');
-                }
-                
-                if (!isset($params['id'])) {
-                    $this->dieWithError('Missing ID parameter', 'missingparam');
-                }
-                
-                try {
+                    break;
+                    
+                case 'remove':
+                    if (!$user->isAllowed('aspaklarya-review')) {
+                        $this->dieWithError('You do not have permission to review images', 'permissiondenied');
+                    }
+                    
+                    if (!isset($params['id'])) {
+                        $this->dieWithError('Missing ID parameter', 'missingparam');
+                    }
+                    
                     $row = $dbw->selectRow(
                         'aspaklarya_review_queue',
                         '*',
-                        ['arq_id' => (int)$params['id']]
+                        ['arq_id' => (int)$params['id']],
+                        __METHOD__
                     );
                     
                     if (!$row) {
@@ -105,7 +106,8 @@ class ApiAspaklaryaReview extends ApiBase {
                             'arq_reviewer' => $user->getId(),
                             'arq_review_timestamp' => $dbw->timestamp()
                         ],
-                        ['arq_id' => (int)$params['id']]
+                        ['arq_id' => (int)$params['id']],
+                        __METHOD__
                     );
                     
                     $this->removeImage($row->arq_filename);
@@ -116,27 +118,26 @@ class ApiAspaklaryaReview extends ApiBase {
                         $row->arq_filename
                     );
                     
-                    $this->getResult()->addValue(null, 'notification', $notificationId);
-                } catch (\Exception $e) {
-                    $this->dieWithError('Error processing request: ' . $e->getMessage(), 'processingerror');
-                }
-                break;
-                
-            case 'approve':
-            case 'edited':
-                if (!$user->isAllowed('aspaklarya-review')) {
-                    $this->dieWithError('You do not have permission to review images', 'permissiondenied');
-                }
-                
-                if (!isset($params['id'])) {
-                    $this->dieWithError('Missing ID parameter', 'missingparam');
-                }
-                
-                try {
+                    if ($notificationId) {
+                        $this->getResult()->addValue(null, 'notification', $notificationId);
+                    }
+                    break;
+                    
+                case 'approve':
+                case 'edited':
+                    if (!$user->isAllowed('aspaklarya-review')) {
+                        $this->dieWithError('You do not have permission to review images', 'permissiondenied');
+                    }
+                    
+                    if (!isset($params['id'])) {
+                        $this->dieWithError('Missing ID parameter', 'missingparam');
+                    }
+                    
                     $row = $dbw->selectRow(
                         'aspaklarya_review_queue',
                         '*',
-                        ['arq_id' => (int)$params['id']]
+                        ['arq_id' => (int)$params['id']],
+                        __METHOD__
                     );
                     
                     if (!$row) {
@@ -146,30 +147,34 @@ class ApiAspaklaryaReview extends ApiBase {
                     $dbw->update(
                         'aspaklarya_review_queue',
                         [
-                            'arq_status' => $params['do'],
+                            'arq_status' => $action,
                             'arq_reviewer' => $user->getId(),
                             'arq_review_timestamp' => $dbw->timestamp()
                         ],
-                        ['arq_id' => (int)$params['id']]
+                        ['arq_id' => (int)$params['id']],
+                        __METHOD__
                     );
                     
                     $notificationId = $this->sendNotification(
                         $row->arq_requester,
-                        $params['do'],
+                        $action,
                         $row->arq_filename
                     );
                     
-                    $this->getResult()->addValue(null, 'notification', $notificationId);
-                } catch (\Exception $e) {
-                    $this->dieWithError('Error processing request: ' . $e->getMessage(), 'processingerror');
-                }
-                break;
-                
-            default:
-                $this->dieWithError('Invalid action', 'invalidaction');
+                    if ($notificationId) {
+                        $this->getResult()->addValue(null, 'notification', $notificationId);
+                    }
+                    break;
+                    
+                default:
+                    $this->dieWithError('Invalid action', 'invalidaction');
+            }
+            
+            $this->getResult()->addValue(null, 'success', true);
+        } catch (\Exception $e) {
+            wfLogWarning('AspaklaryaReview API error: ' . $e->getMessage());
+            $this->dieWithError('Error: ' . $e->getMessage(), 'internalerror');
         }
-        
-        $this->getResult()->addValue(null, 'success', true);
     }
 
     private function sendNotification($userId, $type, $filename) {
@@ -303,10 +308,6 @@ class ApiAspaklaryaReview extends ApiBase {
 
     public function isWriteMode() {
         return true;
-    }
-
-    public function getTokenSalt() {
-        return '';
     }
 
     protected function getExamplesMessages() {

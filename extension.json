@@ -35,6 +35,14 @@
             ]
         }
     },
+    "APIListModules": {
+        "aspaklaryareview": {
+            "class": "MediaWiki\\Extension\\AspaklaryaReview\\Api\\ApiQueryAspaklaryaReview",
+            "services": [
+                "DBLoadBalancer"
+            ]
+        }
+    },
     "MessagesDirs": {
         "AspaklaryaReview": [
             "i18n"

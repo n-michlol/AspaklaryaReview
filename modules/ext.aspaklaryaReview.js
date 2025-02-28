@@ -20,7 +20,45 @@
                 showReviewDialog();
             });
         }
+        
+        checkSubmittedImages();
     });
+    
+    function checkSubmittedImages() {
+        const api = new mw.Api();
+        const pageId = mw.config.get('wgArticleId');
+        
+        $('img').each(function() {
+            const $img = $(this);
+            let src = $img.attr('src');
+            let match = src.match(/\/([^\/]+\.(jpg|jpeg|png|gif|svg))(?:\?|$)/i);
+            
+            if (!match) {
+                return;
+            }
+            
+            let filename = decodeURIComponent(match[1]);
+            filename = filename.replace(/^\d+px-/, '');
+            
+            api.get({
+                action: 'query',
+                list: 'aspaklaryareview',
+                arqfilename: filename,
+                arqpageid: pageId
+            }).done(function(response) {
+                if (response.query && response.query.aspaklaryareview && 
+                    response.query.aspaklaryareview.length > 0) {
+                    
+                    const $parent = $img.parent();
+                    if (!$parent.hasClass('aspaklarya-image-wrapper')) {
+                        $img.wrap('<div class="aspaklarya-image-wrapper"></div>');
+                    }
+                    
+                    $img.parent().addClass('aspaklarya-hidden');
+                }
+            });
+        });
+    }
 
     function showReviewDialog() {
         const images = [];
@@ -119,14 +157,17 @@
     function submitForReview(images) {
         const api = new mw.Api();
         let successCount = 0;
+        let errorCount = 0;
         
-        images.forEach(image => {
-            api.postWithToken('csrf', {
+        const notification = mw.notification.notify('Submitting images...', {autoHide: false});
+        
+        const promises = images.map(image => {
+            return api.postWithToken('csrf', {
                 action: 'aspaklaryareview',
                 do: 'submit',
                 filename: image.filename,
                 pageid: mw.config.get('wgArticleId')
-            }).done(function(response) {
+            }).then(function(response) {
                 if (response.success) {
                     const $parent = image.element.parent();
                     if (!$parent.hasClass('aspaklarya-image-wrapper')) {
@@ -135,19 +176,30 @@
                     
                     image.element.parent().addClass('aspaklarya-hidden');
                     successCount++;
-                    
-                    if (successCount === images.length) {
-                        mw.notify(mw.msg('aspaklarya-review-success'), {type: 'success'});
-                    }
                 }
-            }).fail(function(code, data) {
+                return response;
+            }).catch(function(code, data) {
                 console.error('Error submitting image:', code, data);
+                errorCount++;
                 if (data && data.exception) {
                     mw.notify('Error submitting image: ' + data.exception, {type: 'error'});
                 } else {
                     mw.notify('Error submitting image: ' + image.filename, {type: 'error'});
                 }
+                return null;
             });
+        });
+        
+        $.when.apply($, promises).always(function() {
+            notification.close();
+            
+            if (successCount > 0) {
+                mw.notify(mw.msg('aspaklarya-review-success'), {type: 'success'});
+            }
+            
+            if (errorCount > 0) {
+                mw.notify('Some images failed to submit. Please try again.', {type: 'error'});
+            }
         });
     }
 })();
