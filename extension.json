@@ -4,7 +4,7 @@
     "author": [
         "Neriah"
     ],
-    "url": false,
+    "url": "https://github.com/n-michlol/AspaklaryaReview",
     "descriptionmsg": "aspaklaryareview-desc",
     "license-name": "GPL-3.0-or-later",
     "type": "specialpage",
@@ -27,7 +27,13 @@
       }
     },
     "APIModules": {
-        "aspaklaryareview": "MediaWiki\\Extension\\AspaklaryaReview\\Api\\ApiAspaklaryaReview"
+        "aspaklaryareview": {
+            "class": "MediaWiki\\Extension\\AspaklaryaReview\\Api\\ApiAspaklaryaReview",
+            "services": [
+                "DBLoadBalancer",
+                "UserFactory"
+            ]
+        }
     },
     "MessagesDirs": {
         "AspaklaryaReview": [
@@ -70,7 +76,8 @@
             "messages": [
                 "aspaklarya-queue-remove",
                 "aspaklarya-queue-approve",
-                "aspaklarya-queue-edited"
+                "aspaklarya-queue-edited",
+                "aspaklarya-queue-empty"
             ],
             "dependencies": [
                 "mediawiki.api",
@@ -83,10 +90,22 @@
         "localBasePath": "",
         "remoteExtPath": "AspaklaryaReview"
     },
+    "HookHandlers": {
+        "main": {
+            "class": "MediaWiki\\Extension\\AspaklaryaReview\\Hooks",
+            "services": [
+                "PermissionManager",
+                "UserFactory"
+            ]
+        },
+        "notifications": {
+            "class": "MediaWiki\\Extension\\AspaklaryaReview\\NotificationDefiner"
+        }
+    },
     "Hooks": {
-        "BeforePageDisplay": "MediaWiki\\Extension\\AspaklaryaReview\\Hooks::onBeforePageDisplay",
-        "LoadExtensionSchemaUpdates": "MediaWiki\\Extension\\AspaklaryaReview\\Hooks::onLoadExtensionSchemaUpdates",
-        "BeforeCreateEchoEvent": "MediaWiki\\Extension\\AspaklaryaReview\\NotificationDefiner::onBeforeCreateEchoEvent"
+        "BeforePageDisplay": "main",
+        "LoadExtensionSchemaUpdates": "main",
+        "BeforeCreateEchoEvent": "notifications"
     },
     "GroupPermissions": {
         "aspaklarya2": {
