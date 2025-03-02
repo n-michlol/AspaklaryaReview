@@ -7,60 +7,53 @@
 }
 
 .aspaklarya-image-wrapper {
-    display: inline-block;
     position: relative;
+    display: inline-block;
 }
 
-.aspaklarya-image-wrapper.aspaklarya-hidden::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.1);
-    z-index: 1;
+.aspaklarya-image-wrapper.aspaklarya-hidden img {
+    filter: blur(10px);
+    transition: filter 0.3s ease;
 }
 
-/* חלונית התמונות */
+body:not(.aspaklarya-reviewer) .aspaklarya-image-wrapper.aspaklarya-hidden img {
+    filter: blur(10px);
+}
+
+body.aspaklarya-reviewer .aspaklarya-image-wrapper.aspaklarya-hidden img {
+    filter: none;
+}
+
 .aspaklarya-review-dialog {
-    max-width: 800px;
-    margin: 0 auto;
+    max-width: 100%;
+    overflow-x: auto;
 }
 
 .aspaklarya-review-images {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 1em;
-    margin: 1em 0;
-    max-height: 60vh;
-    overflow-y: auto;
+    margin-bottom: 1em;
 }
 
 .aspaklarya-review-image-item {
     border: 1px solid #ddd;
     padding: 0.5em;
     border-radius: 3px;
-    background-color: #f9f9f9;
+    max-width: 250px;
 }
 
 .aspaklarya-review-image-item img {
     max-width: 100%;
     height: auto;
     margin-bottom: 0.5em;
-    border: 1px solid #eee;
-}
-
-.aspaklarya-review-image-item .oo-ui-checkboxInputWidget {
-    margin-top: 0.5em;
 }
 
 .aspaklarya-review-buttons {
-    margin-top: 1em;
-    text-align: right;
     display: flex;
     justify-content: flex-end;
     gap: 0.5em;
+    margin-top: 1em;
 }
 
 /* כפתור בסרגל הצד */
