@@ -68,6 +68,8 @@
                     pendingImages.add(item.filename);
                 });
                 
+                const hasReviewPermission = mw.config.get('wgUserGroups', []).includes('aspaklarya2');
+                
                 Object.keys(imageElements).forEach(function(filename) {
                     if (pendingImages.has(filename)) {
                         imageElements[filename].forEach(function($img) {
@@ -76,7 +78,9 @@
                                 $img.wrap('<div class="aspaklarya-image-wrapper"></div>');
                             }
                             
-                            $img.parent().addClass('aspaklarya-hidden');
+                            if (!hasReviewPermission) {
+                                $img.parent().addClass('aspaklarya-hidden');
+                            }
                         });
                     }
                 });
@@ -157,7 +161,7 @@
         dialogContent.append(buttonsContainer);
 
         const dialog = new OO.ui.MessageDialog({
-            size: 'large'
+            size: 'larger'
         });
 
         const windowManager = new OO.ui.WindowManager();
@@ -166,7 +170,8 @@
         
         windowManager.openWindow(dialog, {
             title: mw.msg('aspaklarya-review-title'),
-            message: dialogContent
+            message: dialogContent,
+            actions: [] 
         });
 
         submitButton.on('click', function() {
@@ -221,7 +226,11 @@
                         image.element.wrap('<div class="aspaklarya-image-wrapper"></div>');
                     }
                     
-                    image.element.parent().addClass('aspaklarya-hidden');
+                    const hasReviewPermission = mw.config.get('wgUserGroups', []).includes('aspaklarya2');
+                    if (!hasReviewPermission) {
+                        image.element.parent().addClass('aspaklarya-hidden');
+                    }
+                    
                     successCount++;
                 }
                 return response;
