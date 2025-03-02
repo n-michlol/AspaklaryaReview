@@ -5,7 +5,6 @@ namespace MediaWiki\Extension\AspaklaryaReview\Api;
 use ApiBase;
 use MediaWiki\User\UserFactory;
 use Wikimedia\Rdbms\ILoadBalancer;
-use WikiPage;
 use Title;
 use CommentStoreComment;
 use WikitextContent;
@@ -185,24 +184,31 @@ class ApiAspaklaryaReview extends ApiBase {
     private function sendNotification($userId, $type, $filename) {
         try {
             $services = MediaWikiServices::getInstance();
+            
             if (!$services->hasService('EchoNotificationManager')) {
                 return null;
             }
             
             $notificationManager = $services->getService('EchoNotificationManager');
+            $eventFactory = $services->getService('EchoEventFactory');
             
             $extra = [
                 'filename' => $filename,
-                'reviewer' => $this->getUser()->getName()
+                'reviewer' => $this->getUser()->getName(),
+                'agent' => $userId
             ];
             
-            $notification = $notificationManager->createNotification(
-                [$userId],
-                'aspaklarya-' . $type,
-                $extra
-            );
+            $event = $eventFactory->create([
+                'type' => 'aspaklarya-' . $type,
+                'agent' => $this->getUser(),
+                'extra' => $extra
+            ]);
             
-            return $notification->getId();
+            if ($event) {
+                return $event->getId();
+            }
+            
+            return null;
         } catch (\Exception $e) {
             wfLogWarning('Failed to send notification: ' . $e->getMessage());
             return null;
@@ -227,7 +233,8 @@ class ApiAspaklaryaReview extends ApiBase {
                     continue;
                 }
                 
-                $page = WikiPage::factory($title);
+                $wikiPageFactory = $services->getWikiPageFactory();
+                $page = $wikiPageFactory->newFromTitle($title);
                 $content = $page->getContent();
                 
                 if (!$content) {
@@ -248,7 +255,8 @@ class ApiAspaklaryaReview extends ApiBase {
             
             $fileTitle = Title::makeTitle(NS_FILE, $filename);
             if ($fileTitle->exists()) {
-                $page = WikiPage::factory($fileTitle);
+                $wikiPageFactory = $services->getWikiPageFactory();
+                $page = $wikiPageFactory->newFromTitle($fileTitle);
                 $updater = $page->newPageUpdater($this->getUser());
                 $updater->setContent(SlotRecord::MAIN, new WikitextContent('#הפניה [[קובץ:תמונה חילופית.jpg]]'));
                 $updater->saveRevision(
