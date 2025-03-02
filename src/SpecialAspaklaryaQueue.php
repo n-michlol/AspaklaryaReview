@@ -10,6 +10,52 @@ use Status;
 use OOUI;
 use Html;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Pager\ReverseChronologicalPager;
+
+class AspaklaryaQueuePager extends ReverseChronologicalPager {
+    private $userFactory;
+    private $conditions;
+
+    public function __construct(ILoadBalancer $loadBalancer, UserFactory $userFactory, $conditions = []) {
+        parent::__construct($loadBalancer);
+        $this->userFactory = $userFactory;
+        $this->conditions = $conditions;
+    }
+
+    public function getQueryInfo() {
+        return [
+            'tables' => 'aspaklarya_review_queue',
+            'fields' => '*',
+            'conds' => array_merge(['arq_status' => 'pending'], $this->conditions),
+            'options' => []
+        ];
+    }
+
+    public function getIndexField() {
+        return 'arq_timestamp';
+    }
+
+    public function formatRow($row) {
+        $requester = $this->userFactory->newFromId($row->arq_requester);
+        $filename = $row->arq_filename;
+        
+        return $this->getParent()->formatQueueItem(
+            $row->arq_id,
+            $filename,
+            $requester->getName(),
+            $row->arq_timestamp,
+            $row->arq_page_id
+        );
+    }
+
+    public function getEmptyBody() {
+        return Html::element(
+            'div', 
+            ['class' => 'aspaklarya-queue-empty'], 
+            $this->msg('aspaklarya-queue-empty')->text()
+        );
+    }
+}
 
 class SpecialAspaklaryaQueue extends SpecialPage {
     private $loadBalancer;
@@ -28,50 +74,29 @@ class SpecialAspaklaryaQueue extends SpecialPage {
         $this->checkPermissions();
         $this->setHeaders();
         $out = $this->getOutput();
+        $request = $this->getRequest();
 
         $out->enableOOUI();
         $out->addModules(['ext.aspaklaryaQueue', 'oojs-ui-core', 'oojs-ui-widgets']);
         $out->setPageTitle($this->msg('aspaklarya-queue-title'));
 
-        $dbr = $this->loadBalancer->getConnection(DB_REPLICA);
-        
         try {
-            $res = $dbr->select(
-                'aspaklarya_review_queue',
-                '*',
-                ['arq_status' => 'pending'],
-                __METHOD__,
-                ['ORDER BY' => 'arq_timestamp DESC']
-            );
-
-            if ($res->numRows() === 0) {
+            $pager = new AspaklaryaQueuePager($this->loadBalancer, $this->userFactory);
+            $pager->setParent($this);
+            $pager->setLimit(20); 
+            
+            if ($pager->getNumRows() > 0) {
+                $out->addHTML(Html::rawElement('div', ['class' => 'aspaklarya-queue-list'], $pager->getBody()));
+                $out->addHTML($pager->getNavigationBar());
+            } else {
                 $out->addWikiMsg('aspaklarya-queue-empty');
-                return;
             }
-
-            $html = '<div class="aspaklarya-queue-list">';
-            
-            foreach ($res as $row) {
-                $requester = $this->userFactory->newFromId($row->arq_requester);
-                $filename = $row->arq_filename;
-                
-                $html .= $this->formatQueueItem(
-                    $row->arq_id,
-                    $filename,
-                    $requester->getName(),
-                    $row->arq_timestamp,
-                    $row->arq_page_id
-                );
-            }
-            
-            $html .= '</div>';
-            $out->addHTML($html);
         } catch (\Exception $e) {
             $out->addHTML(Html::errorBox('Error loading review queue: ' . $e->getMessage()));
         }
     }
 
-    private function formatQueueItem($id, $filename, $requester, $timestamp, $pageId) {
+    public function formatQueueItem($id, $filename, $requester, $timestamp, $pageId) {
         $title = \Title::newFromID($pageId);
         $fileTitle = \Title::newFromText($filename, NS_FILE);
         

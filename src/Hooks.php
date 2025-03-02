@@ -22,32 +22,28 @@ class Hooks implements BeforePageDisplayHook {
     }
 
     public function onBeforePageDisplay($out, $skin): void {
-        $user = $out->getUser();
+        $title = $out->getTitle();
         
+        if ($title->inNamespace(NS_MAIN) && $title->exists()) {
         /*
         Add the module only for logged-in users - I thought it was better that way.
         If there is a different decision, it will require thinking about what to do with 
         the messages to the user who sent the image for review.
         */
-        if ($user->isRegistered()) {
             $out->addModules(['ext.aspaklaryaReview']);
+        }
+        
+        $user = $out->getUser();
+        
+        if ($user->isRegistered() && $this->permissionManager->userHasRight($user, 'aspaklarya-review')) {
+            $out->addBodyClasses('aspaklarya-reviewer');
         }
     }
 
-    /**
-     * Static method for schema updates to avoid DI issues
-     *
-     * @param DatabaseUpdater $updater
-     * @return void
-     */
-    public static function onLoadExtensionSchemaUpdates($updater): void {
-        $dbType = $updater->getDB()->getType();
-        
-        if ($dbType === 'mysql' || $dbType === 'sqlite') {
-            $updater->addExtensionTable(
-                'aspaklarya_review_queue',
-                __DIR__ . '/../sql/tables-generated.sql'
-            );
-        }
+    public static function onLoadExtensionSchemaUpdates(DatabaseUpdater $updater) {
+        $updater->addExtensionTable(
+            'aspaklarya_review_queue',
+            __DIR__ . '/../sql/tables-generated.sql'
+        );
     }
 }

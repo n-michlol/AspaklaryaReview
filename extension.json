@@ -65,7 +65,12 @@
                 "aspaklarya-review-submit",
                 "aspaklarya-review-cancel",
                 "aspaklarya-review-success",
-                "aspaklarya-review-tooltip"
+                "aspaklarya-review-tooltip",
+                "aspaklarya-review-no-images",
+                "aspaklarya-review-no-selection",
+                "aspaklarya-review-error",
+                "aspaklarya-review-partial-error",
+                "aspaklarya-review-submitting"
             ],
             "dependencies": [
                 "mediawiki.api",
@@ -89,7 +94,8 @@
                 "aspaklarya-queue-title",
                 "aspaklarya-queue-requested-by",
                 "aspaklarya-queue-timestamp",
-                "aspaklarya-queue-page"
+                "aspaklarya-queue-page",
+                "aspaklarya-queue-error-processing"
             ],
             "dependencies": [
                 "mediawiki.api",

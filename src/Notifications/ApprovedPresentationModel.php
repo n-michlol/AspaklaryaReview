@@ -7,7 +7,7 @@ use Message;
 
 class ApprovedPresentationModel extends EchoEventPresentationModel {
     public function getIconType() {
-        return 'check';
+        return 'checkmark';
     }
 
     public function getHeaderMessage() {
@@ -25,9 +25,5 @@ class ApprovedPresentationModel extends EchoEventPresentationModel {
             'url' => \Title::newFromText($filename, NS_FILE)->getFullURL(),
             'label' => $this->msg('notification-link-text-view-file')->text()
         ];
-    }
-    
-    public function getSecondaryLinks() {
-        return [];
     }
 }
