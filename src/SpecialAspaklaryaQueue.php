@@ -15,11 +15,22 @@ use MediaWiki\Pager\ReverseChronologicalPager;
 class AspaklaryaQueuePager extends ReverseChronologicalPager {
     private $userFactory;
     private $conditions;
+    private $loadBalancer;
+    private $parent;
 
-    public function __construct(ILoadBalancer $loadBalancer, UserFactory $userFactory, $conditions = []) {
-        parent::__construct($loadBalancer);
+    public function __construct($context, ILoadBalancer $loadBalancer, UserFactory $userFactory, $conditions = []) {
+        parent::__construct($context);
+        $this->loadBalancer = $loadBalancer;
         $this->userFactory = $userFactory;
         $this->conditions = $conditions;
+    }
+
+    public function setParent($parent) {
+        $this->parent = $parent;
+    }
+
+    public function getParent() {
+        return $this->parent;
     }
 
     public function getQueryInfo() {
@@ -81,7 +92,7 @@ class SpecialAspaklaryaQueue extends SpecialPage {
         $out->setPageTitle($this->msg('aspaklarya-queue-title'));
 
         try {
-            $pager = new AspaklaryaQueuePager($this->loadBalancer, $this->userFactory);
+            $pager = new AspaklaryaQueuePager($this->getContext(), $this->loadBalancer, $this->userFactory);
             $pager->setParent($this);
             $pager->setLimit(20); 
             
