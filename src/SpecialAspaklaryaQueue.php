@@ -116,15 +116,19 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             'data-id' => $id
         ]);
         
-        if ($fileTitle && $fileTitle->exists()) {
+        if ($fileTitle) {
             $services = MediaWikiServices::getInstance();
             $repoGroup = $services->getRepoGroup();
             $file = $repoGroup->findFile($fileTitle);
+
+            if (!$file) {
+                $file = $repoGroup->getForeignFile($fileTitle, 'shared');
+            }
             
             if ($file) {
                 $thumb = $file->transform(['width' => 300]);
                 if ($thumb) {
-                    $fileUrl = $fileTitle->getLinkURL();
+                    $fileUrl = $file->getUrl();
                     $html .= Html::openElement('a', [
                         'href' => $fileUrl,
                         'class' => 'aspaklarya-queue-image-link'
