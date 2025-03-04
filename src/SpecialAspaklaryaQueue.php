@@ -116,16 +116,25 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             'data-id' => $id
         ]);
         
-        if ($fileTitle && $fileTitle->exists()) {
-            $services = MediaWikiServices::getInstance();
-            $repoGroup = $services->getRepoGroup();
-            $file = $repoGroup->findFile($fileTitle);
+        $services = MediaWikiServices::getInstance();
+        $repoGroup = $services->getRepoGroup();
+        $file = $repoGroup->findFile($fileTitle);
+        
+        if (!$file || !$file->exists()) {
+            $commonsTitle = \Title::newFromText('File:' . $filename, NS_FILE);
+            $commonsRepo = $services->getRepoGroup()->getLocalRepo()->getRepoName() === 'commons' 
+                ? $repoGroup 
+                : $services->getRepoGroup()->getRepoFromTableName('commons');
             
-            if ($file) {
-                $thumb = $file->transform(['width' => 300]);
-                if ($thumb) {
-                    $html .= $thumb->toHtml(['class' => 'aspaklarya-queue-image']);
-                }
+            if ($commonsRepo) {
+                $file = $commonsRepo->findFile($commonsTitle);
+            }
+        }
+        
+        if ($file && $file->exists()) {
+            $thumb = $file->transform(['width' => 300]);
+            if ($thumb) {
+                $html .= $thumb->toHtml(['class' => 'aspaklarya-queue-image']);
             }
         }
         
