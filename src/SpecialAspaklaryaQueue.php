@@ -107,24 +107,20 @@ class SpecialAspaklaryaQueue extends SpecialPage {
         }
     }
 
-    public function formatQueueItem($id, $filename, $requester, $timestamp, $pageId) {
-        $title = \Title::newFromID($pageId);
-        $fileTitle = \Title::newFromText($filename, NS_FILE);
-        
-        $html = Html::openElement('div', [
-            'class' => 'aspaklarya-queue-item',
-            'data-id' => $id
-        ]);
-        
+public function formatQueueItem($id, $filename, $requester, $timestamp, $pageId) {
+    $title = \Title::newFromID($pageId);
+    $fileTitle = \Title::newFromText($filename, NS_FILE);
+    
+    $html = Html::openElement('div', [
+        'class' => 'aspaklarya-queue-item',
+        'data-id' => $id
+    ]);
+    
         if ($fileTitle) {
             $services = MediaWikiServices::getInstance();
             $repoGroup = $services->getRepoGroup();
             $file = $repoGroup->findFile($fileTitle);
 
-            if (!$file) {
-                $file = $repoGroup->getForeignFile($fileTitle, 'shared');
-            }
-            
             if ($file) {
                 $thumb = $file->transform(['width' => 300]);
                 if ($thumb) {
@@ -136,23 +132,26 @@ class SpecialAspaklaryaQueue extends SpecialPage {
                     $html .= $thumb->toHtml(['class' => 'aspaklarya-queue-image']);
                     $html .= Html::closeElement('a');
                 }
+            } else {
+                $html .= Html::element('div', ['class' => 'aspaklarya-queue-error'], 
+                    $this->msg('aspaklarya-queue-error-processing')->text());
             }
         }
-        
+    
         $html .= Html::element('h3', [], $filename);
         $html .= Html::element('div', ['class' => 'aspaklarya-queue-info'], 
             $this->msg('aspaklarya-queue-requested-by', $requester)->text());
         $html .= Html::element('div', ['class' => 'aspaklarya-queue-info'], 
             $this->msg('aspaklarya-queue-timestamp', wfTimestamp(TS_RFC2822, $timestamp))->text());
-        
+    
         if ($title) {
             $html .= Html::element('div', ['class' => 'aspaklarya-queue-info'], 
                 $this->msg('aspaklarya-queue-page', $title->getPrefixedText())->text()
             );
         }
-        
+    
         $html .= '<div class="aspaklarya-queue-actions">';
-        
+    
         $removeButton = new OOUI\ButtonWidget([
             'label' => $this->msg('aspaklarya-queue-remove')->text(),
             'flags' => ['destructive'],
@@ -161,7 +160,7 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             'data' => ['id' => $id]
         ]);
         $html .= $removeButton->toString();
-        
+    
         $approveButton = new OOUI\ButtonWidget([
             'label' => $this->msg('aspaklarya-queue-approve')->text(),
             'flags' => ['progressive'],
@@ -170,7 +169,7 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             'data' => ['id' => $id]
         ]);
         $html .= $approveButton->toString();
-        
+    
         $editedButton = new OOUI\ButtonWidget([
             'label' => $this->msg('aspaklarya-queue-edited')->text(),
             'flags' => [],
@@ -179,10 +178,10 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             'data' => ['id' => $id]
         ]);
         $html .= $editedButton->toString();
-        
+    
         $html .= '</div>';
         $html .= Html::closeElement('div');
-        
+    
         return $html;
     }
 
