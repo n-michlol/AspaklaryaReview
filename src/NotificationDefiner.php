@@ -75,5 +75,11 @@ class NotificationDefiner {
                 ]
             ]
         ];
+        
+        wfDebugLog(
+            'AspaklaryaReview', 
+            'Registered notification types: ' . 
+            implode(', ', array_keys($notifications))
+        );
     }
 }
