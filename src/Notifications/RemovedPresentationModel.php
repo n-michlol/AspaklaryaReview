@@ -7,7 +7,7 @@ use Message;
 
 class RemovedPresentationModel extends EchoEventPresentationModel {
     public function getIconType() {
-        return 'trash';
+        return 'aspaklarya-removed';
     }
 
     public function getHeaderMessage() {

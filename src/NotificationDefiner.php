@@ -5,11 +5,23 @@ namespace MediaWiki\Extension\AspaklaryaReview;
 use ExtensionRegistry;
 
 class NotificationDefiner {
-    public static function onBeforeCreateEchoEvent(&$notifications, &$categories) {
+    public static function onBeforeCreateEchoEvent(&$notifications, &$categories, &$icons) {
         if (!ExtensionRegistry::getInstance()->isLoaded('Echo')) {
             wfLogWarning('Echo extension is not installed or loaded. Notifications will not be available.');
             return;
         }
+
+        $icons['aspaklarya-approved'] = [
+            'path' => 'Echo/modules/icons/check.svg',
+        ];
+        
+        $icons['aspaklarya-edited'] = [
+            'path' => 'Echo/modules/icons/edit.svg',
+        ];
+        
+        $icons['aspaklarya-removed'] = [
+            'path' => 'Echo/modules/icons/block.svg',
+        ];
         
         $categories['aspaklarya-review'] = [
             'priority' => 3,
