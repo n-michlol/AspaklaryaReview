@@ -11,6 +11,7 @@ use WikitextContent;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\MediaWikiServices;
 use Wikimedia\ParamValidator\ParamValidator;
+use ExtensionRegistry;
 
 class ApiAspaklaryaReview extends ApiBase {
     private $loadBalancer;
@@ -114,16 +115,11 @@ class ApiAspaklaryaReview extends ApiBase {
                     
                     $this->removeImage($row->arq_filename);
                     
-                    $notificationId = null;
-                    try {
-                        $notificationId = $this->sendNotification(
-                            $row->arq_requester,
-                            'removed',
-                            $row->arq_filename
-                        );
-                    } catch (\Exception $e) {
-                        wfLogWarning('Failed to send notification: ' . $e->getMessage());
-                    }
+                    $notificationId = $this->sendNotification(
+                        $row->arq_requester,
+                        'removed',
+                        $row->arq_filename
+                    );
                     
                     if ($notificationId) {
                         $this->getResult()->addValue(null, 'notification', $notificationId);
@@ -133,6 +129,49 @@ class ApiAspaklaryaReview extends ApiBase {
                     break;
                     
                 case 'approve':
+                    if (!$user->isAllowed('aspaklarya-review')) {
+                        $this->dieWithError('You do not have permission to review images', 'permissiondenied');
+                    }
+                    
+                    if (!isset($params['id'])) {
+                        $this->dieWithError('Missing ID parameter', 'missingparam');
+                    }
+                    
+                    $row = $dbw->selectRow(
+                        'aspaklarya_review_queue',
+                        '*',
+                        ['arq_id' => (int)$params['id']],
+                        __METHOD__
+                    );
+                    
+                    if (!$row) {
+                        $this->dieWithError('Record not found', 'notfound');
+                    }
+                    
+                    $dbw->update(
+                        'aspaklarya_review_queue',
+                        [
+                            'arq_status' => 'approve',
+                            'arq_reviewer' => $user->getId(),
+                            'arq_review_timestamp' => $dbw->timestamp()
+                        ],
+                        ['arq_id' => (int)$params['id']],
+                        __METHOD__
+                    );
+                    
+                    $notificationId = $this->sendNotification(
+                        $row->arq_requester,
+                        'approved',
+                        $row->arq_filename
+                    );
+                    
+                    if ($notificationId) {
+                        $this->getResult()->addValue(null, 'notification', $notificationId);
+                    }
+                    
+                    $this->getResult()->addValue(null, 'success', true);
+                    break;
+                    
                 case 'edited':
                     if (!$user->isAllowed('aspaklarya-review')) {
                         $this->dieWithError('You do not have permission to review images', 'permissiondenied');
@@ -156,7 +195,7 @@ class ApiAspaklaryaReview extends ApiBase {
                     $dbw->update(
                         'aspaklarya_review_queue',
                         [
-                            'arq_status' => $action,
+                            'arq_status' => 'edited',
                             'arq_reviewer' => $user->getId(),
                             'arq_review_timestamp' => $dbw->timestamp()
                         ],
@@ -164,16 +203,11 @@ class ApiAspaklaryaReview extends ApiBase {
                         __METHOD__
                     );
                     
-                    $notificationId = null;
-                    try {
-                        $notificationId = $this->sendNotification(
-                            $row->arq_requester,
-                            $action,
-                            $row->arq_filename
-                        );
-                    } catch (\Exception $e) {
-                        wfLogWarning('Failed to send notification: ' . $e->getMessage());
-                    }
+                    $notificationId = $this->sendNotification(
+                        $row->arq_requester,
+                        'edited',
+                        $row->arq_filename
+                    );
                     
                     if ($notificationId) {
                         $this->getResult()->addValue(null, 'notification', $notificationId);
@@ -192,11 +226,24 @@ class ApiAspaklaryaReview extends ApiBase {
     }
 
     private function sendNotification($userId, $type, $filename) {
+        if (!ExtensionRegistry::getInstance()->isLoaded('Echo')) {
+            wfLogWarning('Echo extension is not loaded. Cannot send notification.');
+            return null;
+        }
+
         try {
             $services = MediaWikiServices::getInstance();
+            $targetUser = $this->userFactory->newFromId($userId);
             
-            if (!class_exists('EchoNotificationController')) {
-                wfLogWarning('Echo extension is not loaded. Notifications will not be sent.');
+            if (!$targetUser || !$targetUser->isRegistered()) {
+                wfLogWarning('Cannot send notification: target user not found or not registered.');
+                return null;
+            }
+
+            $notificationType = 'aspaklarya-' . $type;
+            
+            if (!in_array($notificationType, ['aspaklarya-approved', 'aspaklarya-removed', 'aspaklarya-edited'])) {
+                wfLogWarning("Invalid notification type: $notificationType");
                 return null;
             }
             
@@ -206,19 +253,25 @@ class ApiAspaklaryaReview extends ApiBase {
                 'agent' => $userId
             ];
             
+            if (!class_exists('\EchoEvent')) {
+                wfLogWarning('EchoEvent class not found. Cannot send notification.');
+                return null;
+            }
+            
             $event = \EchoEvent::create([
-                'type' => 'aspaklarya-' . $type,
+                'type' => $notificationType,
                 'agent' => $this->getUser(),
                 'extra' => $extra
             ]);
             
             if ($event) {
                 return $event->getId();
+            } else {
+                wfLogWarning("Failed to create Echo event of type $notificationType");
+                return null;
             }
-            
-            return null;
         } catch (\Exception $e) {
-            wfLogWarning('Failed to send notification: ' . $e->getMessage());
+            wfLogWarning('Failed to send notification: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
             return null;
         }
     }
