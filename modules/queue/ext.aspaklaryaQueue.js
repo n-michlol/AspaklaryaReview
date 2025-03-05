@@ -44,44 +44,66 @@
         
         const api = new mw.Api();
         
-        api.postWithToken('csrf', {
+        const params = {
             action: 'aspaklaryareview',
             do: action,
-            id: id
-        }).done(function(response) {
-            if (response.success) {
-                $item.slideUp(function() {
-                    $item.remove();
-                    if ($('.aspaklarya-queue-item').length === 0) {
-                        $('.aspaklarya-queue-list').html('<div class="aspaklarya-queue-empty">' + 
-                            mw.msg('aspaklarya-queue-empty') + '</div>');
-                    }
-                });
+            id: id,
+            format: 'json',
+            errorformat: 'plaintext',
+            errorlang: 'en',
+            formatversion: 2
+        };
+        
+        console.log('Sending API request with params:', params);
+        
+        api.postWithToken('csrf', params)
+            .done(function(response) {
+                console.log('API response:', response);
                 
-                if (response.notification) {
-                    try {
-                        api.postWithToken('csrf', {
-                            action: 'echomarkread',
-                            list: [response.notification]
-                        });
-                    } catch(e) {
-                        console.error('Failed to mark notification as read', e);
+                if (response.success) {
+                    $item.slideUp(function() {
+                        $item.remove();
+                        if ($('.aspaklarya-queue-item').length === 0) {
+                            $('.aspaklarya-queue-list').html('<div class="aspaklarya-queue-empty">' + 
+                                mw.msg('aspaklarya-queue-empty') + '</div>');
+                        }
+                    });
+                    
+                    if (response.notification) {
+                        try {
+                            api.postWithToken('csrf', {
+                                action: 'echomarkread',
+                                list: [response.notification]
+                            });
+                        } catch(e) {
+                            console.error('Failed to mark notification as read', e);
+                        }
                     }
+                } else {
+                    $item.removeClass('is-loading');
+                    let errorMsg = 'Error processing request';
+                    if (response.error && response.error.info) {
+                        errorMsg += ': ' + response.error.info;
+                    }
+                    mw.notify(errorMsg, {type: 'error'});
                 }
-            } else {
+            })
+            .fail(function(code, data) {
+                console.error('API error code:', code);
+                console.error('API error data:', data);
+                
                 $item.removeClass('is-loading');
-                mw.notify('Error processing request', {type: 'error'});
-            }
-        }).fail(function(code, data) {
-            $item.removeClass('is-loading');
-            let errorMsg = 'Error';
-            if (data && data.exception) {
-                errorMsg += ': ' + data.exception;
-            } else if (data && data.error && data.error.info) {
-                errorMsg += ': ' + data.error.info;
-            }
-            mw.notify(errorMsg, {type: 'error'});
-            console.error('API error:', code, data);
-        });
+                let errorMsg = 'Error processing request';
+                
+                if (data && data.exception) {
+                    errorMsg += ': ' + data.exception;
+                } else if (data && data.error && data.error.info) {
+                    errorMsg += ': ' + data.error.info;
+                } else if (data && data.textStatus) {
+                    errorMsg += ': ' + data.textStatus;
+                }
+                
+                mw.notify(errorMsg, {type: 'error'});
+            });
     }
 })();
