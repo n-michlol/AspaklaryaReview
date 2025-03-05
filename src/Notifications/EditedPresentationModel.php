@@ -7,7 +7,7 @@ use Message;
 
 class EditedPresentationModel extends EchoEventPresentationModel {
     public function getIconType() {
-        return 'edit';
+        return 'aspaklarya-edited';
     }
 
     public function getHeaderMessage() {

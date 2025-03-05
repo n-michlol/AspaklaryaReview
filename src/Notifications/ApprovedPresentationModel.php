@@ -7,7 +7,7 @@ use Message;
 
 class ApprovedPresentationModel extends EchoEventPresentationModel {
     public function getIconType() {
-        return 'checkmark';
+        return 'aspaklarya-approved';
     }
 
     public function getHeaderMessage() {
