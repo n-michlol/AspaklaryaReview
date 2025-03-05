@@ -2,8 +2,15 @@
 
 namespace MediaWiki\Extension\AspaklaryaReview;
 
+use ExtensionRegistry;
+
 class NotificationDefiner {
     public static function onBeforeCreateEchoEvent(&$notifications, &$categories) {
+        if (!ExtensionRegistry::getInstance()->isLoaded('Echo')) {
+            wfLogWarning('Echo extension is not installed or loaded. Notifications will not be available.');
+            return;
+        }
+        
         $categories['aspaklarya-review'] = [
             'priority' => 3,
             'tooltip' => 'echo-pref-tooltip-aspaklarya-review',
@@ -60,7 +67,13 @@ class NotificationDefiner {
                 'email' => true,
                 'expandable' => true
             ],
-            'immediate' => true
+            'immediate' => true,
+            'user-locators' => [
+                [
+                    'EchoUserLocator::locateFromEventExtra',
+                    ['agent']
+                ]
+            ]
         ];
     }
 }

@@ -114,11 +114,16 @@ class ApiAspaklaryaReview extends ApiBase {
                     
                     $this->removeImage($row->arq_filename);
                     
-                    $notificationId = $this->sendNotification(
-                        $row->arq_requester,
-                        'removed',
-                        $row->arq_filename
-                    );
+                    $notificationId = null;
+                    try {
+                        $notificationId = $this->sendNotification(
+                            $row->arq_requester,
+                            'removed',
+                            $row->arq_filename
+                        );
+                    } catch (\Exception $e) {
+                        wfLogWarning('Failed to send notification: ' . $e->getMessage());
+                    }
                     
                     if ($notificationId) {
                         $this->getResult()->addValue(null, 'notification', $notificationId);
@@ -159,11 +164,16 @@ class ApiAspaklaryaReview extends ApiBase {
                         __METHOD__
                     );
                     
-                    $notificationId = $this->sendNotification(
-                        $row->arq_requester,
-                        $action,
-                        $row->arq_filename
-                    );
+                    $notificationId = null;
+                    try {
+                        $notificationId = $this->sendNotification(
+                            $row->arq_requester,
+                            $action,
+                            $row->arq_filename
+                        );
+                    } catch (\Exception $e) {
+                        wfLogWarning('Failed to send notification: ' . $e->getMessage());
+                    }
                     
                     if ($notificationId) {
                         $this->getResult()->addValue(null, 'notification', $notificationId);
@@ -185,12 +195,10 @@ class ApiAspaklaryaReview extends ApiBase {
         try {
             $services = MediaWikiServices::getInstance();
             
-            if (!$services->hasService('EchoNotificationManager')) {
+            if (!class_exists('EchoNotificationController')) {
+                wfLogWarning('Echo extension is not loaded. Notifications will not be sent.');
                 return null;
             }
-            
-            $notificationManager = $services->getService('EchoNotificationManager');
-            $eventFactory = $services->getService('EchoEventFactory');
             
             $extra = [
                 'filename' => $filename,
@@ -198,7 +206,7 @@ class ApiAspaklaryaReview extends ApiBase {
                 'agent' => $userId
             ];
             
-            $event = $eventFactory->create([
+            $event = \EchoEvent::create([
                 'type' => 'aspaklarya-' . $type,
                 'agent' => $this->getUser(),
                 'extra' => $extra
