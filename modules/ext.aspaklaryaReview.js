@@ -229,11 +229,11 @@
             });
         });
 
-        $.when.apply($, checkPromises).then(function() {
+        Promise.all(checkPromises).then(function(results) {
             const imagesToConfirm = [];
             const imagesToSubmit = [];
         
-            Array.from(arguments).forEach(function(result) {
+            results.forEach(function(result) {
                 if (result.previousReview) {
                     imagesToConfirm.push(result);
                 } else {
