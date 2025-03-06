@@ -43,9 +43,11 @@ class ApiAspaklaryaReview extends ApiBase {
         try {
             switch ($action) {
                 case 'checkprevious':
-                    if (!isset($params['filename'])) {
+                    if (empty($params['filename'])) {
                         $this->dieWithError('Missing filename parameter', 'missingparam');
                     }
+
+                    wfDebug("AspaklaryaReview checking previous review for filename: " . $params['filename']);
 
                     $row = $dbw->selectRow(
                         'aspaklarya_review_queue',
@@ -60,11 +62,22 @@ class ApiAspaklaryaReview extends ApiBase {
                         ]
                     );
 
+                    wfDebug("AspaklaryaReview previous review result: " . ($row ? 'found' : 'not found'));
+                
                     if ($row) {
+                        $reviewerName = '';
+                        try {
+                            $reviewer = $this->userFactory->newFromId($row->arq_reviewer);
+                            $reviewerName = $reviewer ? $reviewer->getName() : '(unknown)';
+                        } catch (\Exception $e) {
+                            $reviewerName = '(error)';
+                            wfLogWarning('Error getting reviewer name: ' . $e->getMessage());
+                        }
+                
                         $this->getResult()->addValue(null, 'previousReview', [
                             'status' => $row->arq_status,
                             'timestamp' => wfTimestamp(TS_ISO_8601, $row->arq_review_timestamp),
-                            'reviewer' => $this->userFactory->newFromId($row->arq_reviewer)->getName()
+                            'reviewer' => $reviewerName
                         ]);
                     } else {
                         $this->getResult()->addValue(null, 'previousReview', false);
