@@ -122,21 +122,20 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             '*',
             [
                 'arq_filename' => $filename,
-                'arq_status' => ['approved', 'removed', 'edited'],
-                'arq_id' => ['!=' => $id]
+                'arq_status' => ['approved', 'removed', 'edited']
             ],
             __METHOD__,
             [
                 'ORDER BY' => 'arq_review_timestamp DESC'
             ]
         );
-
+        
         if ($previousReview) {
             $reviewer = $this->userFactory->newFromId($previousReview->arq_reviewer);
             $reviewerName = $reviewer ? $reviewer->getName() : '(unknown)';
             $language = $this->getLanguage();
             $formattedReviewDate = $language->userTimeAndDate($previousReview->arq_review_timestamp, $this->getUser());
-
+        
             $html .= Html::rawElement('div', [
                 'class' => 'aspaklarya-queue-previous-review aspaklarya-status-' . $previousReview->arq_status
             ], $this->msg('aspaklarya-queue-previously-reviewed', 
