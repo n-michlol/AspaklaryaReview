@@ -212,11 +212,13 @@
         };
 
         const checkPromises = images.map(image => {
+            console.log('Checking previous review for', image.filename);
             return api.get({
                 action: 'aspaklaryareview',
                 do: 'checkprevious',
                 filename: image.filename
             }).then(function(response) {
+                console.log('Previous review response for', image.filename, ':', response);
                 if (response.previousReview) {
                     return {
                         image: image,
@@ -224,7 +226,8 @@
                     };
                 }
                 return { image: image, previousReview: null };
-            }).catch(function() {
+            }).catch(function(error) {
+                console.error('Error checking previous review for', image.filename, ':', error);
                 return { image: image, previousReview: null };
             });
         });
@@ -254,69 +257,63 @@
 
         function confirmPreviouslyReviewed(imagesToConfirm, imagesToSubmit) {
             return new Promise(function(resolve) {
-                const confirmationPromises = [];
-                let remainingConfirmations = imagesToConfirm.length;
-
-                imagesToConfirm.forEach(function(result) {
+                const windowManager = new OO.ui.WindowManager();
+                $('body').append(windowManager.$element);
+        
+                processNextConfirmation(0);
+                
+                function processNextConfirmation(index) {
+                    if (index >= imagesToConfirm.length) {
+                        windowManager.$element.remove();
+                        const confirmedImages = imagesToConfirm
+                            .filter(result => result.confirmed)
+                            .map(result => result.image);
+                        resolve(confirmedImages.concat(imagesToSubmit));
+                        return;
+                    }
+                    
+                    const result = imagesToConfirm[index];
                     const image = result.image;
                     const previousReview = result.previousReview;
-
-                    confirmationPromises.push(new Promise(function(confirmResolve) {
-                        const dialogContent = $('<div></div>');
-
-                        dialogContent.append($('<p></p>').text(
-                            mw.msg('aspaklarya-review-previously-reviewed', 
-                                image.filename, 
-                                previousReview.status, 
-                                previousReview.timestamp
-                            )
-                        ));
-
-                        const dialog = new OO.ui.MessageDialog({
-                            size: 'medium'
-                        });
-
-                        const windowManager = new OO.ui.WindowManager();
-                        $('body').append(windowManager.$element);
-                        windowManager.addWindows([dialog]);
-
-                        windowManager.openWindow(dialog, {
-                            title: mw.msg('aspaklarya-review-confirm-title'),
-                            message: dialogContent,
-                            actions: [
-                                {
-                                    action: 'reject',
-                                    label: mw.msg('aspaklarya-review-confirm-no'),
-                                    flags: ['safe']
-                                },
-                                {
-                                    action: 'accept',
-                                    label: mw.msg('aspaklarya-review-confirm-yes'),
-                                    flags: ['primary', 'progressive']
-                                }
-                            ]
-                        }).closed.then(function(data) {
-                            if (data && data.action === 'accept') {
-                                confirmResolve(image);
-                            } else {
-                                confirmResolve(null);
+                    
+                    const dialogContent = $('<div></div>');
+                    dialogContent.append($('<p></p>').text(
+                        mw.msg('aspaklarya-review-previously-reviewed', 
+                            image.filename, 
+                            previousReview.status, 
+                            previousReview.timestamp
+                        )
+                    ));
+                    
+                    const dialog = new OO.ui.MessageDialog({
+                        size: 'medium'
+                    });
+                    
+                    windowManager.addWindows([dialog]);
+            
+                    windowManager.openWindow(dialog, {
+                        title: mw.msg('aspaklarya-review-confirm-title'),
+                        message: dialogContent,
+                        actions: [
+                            {
+                                action: 'reject',
+                                label: mw.msg('aspaklarya-review-confirm-no'),
+                                flags: ['safe']
+                            },
+                            {
+                                action: 'accept',
+                                label: mw.msg('aspaklarya-review-confirm-yes'),
+                                flags: ['primary', 'progressive']
                             }
-
-                            remainingConfirmations--;
-                            if (remainingConfirmations === 0) {
-                                windowManager.$element.remove();
-                            }
-                        });
-                    }));
-                });
-
-                Promise.all(confirmationPromises).then(function(results) {
-                    const confirmedImages = results.filter(Boolean);
-                    resolve(confirmedImages.concat(imagesToSubmit));
-                });
+                        ]
+                    }).closed.then(function(data) {
+                        result.confirmed = (data && data.action === 'accept');
+                        processNextConfirmation(index + 1);
+                    });
+                }
             });
         }
-    
+
         function processSubmission(images) {
             const notification = notificationSystem.notify(mw.msg('aspaklarya-review-submitting'), {autoHide: false});
 

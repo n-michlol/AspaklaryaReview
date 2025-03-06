@@ -180,7 +180,7 @@ class ApiAspaklaryaReview extends ApiBase {
                     $dbw->update(
                         'aspaklarya_review_queue',
                         [
-                            'arq_status' => 'approve',
+                            'arq_status' => 'approved',
                             'arq_reviewer' => $user->getId(),
                             'arq_review_timestamp' => $dbw->timestamp()
                         ],
