@@ -141,8 +141,13 @@ class SpecialAspaklaryaQueue extends SpecialPage {
         $html .= Html::element('h3', [], $filename);
         $html .= Html::element('div', ['class' => 'aspaklarya-queue-info'], 
             $this->msg('aspaklarya-queue-requested-by', $requester)->text());
+        
+        $language = $this->getLanguage();
+        $user = $this->getUser();
+        $formattedDate = $language->userTimeAndDate($timestamp, $user);
+        
         $html .= Html::element('div', ['class' => 'aspaklarya-queue-info'], 
-            $this->msg('aspaklarya-queue-timestamp', wfTimestamp(TS_RFC2822, $timestamp))->text());
+            $this->msg('aspaklarya-queue-timestamp', $formattedDate)->text());
         
         if ($title) {
             $html .= Html::element('div', ['class' => 'aspaklarya-queue-info'], 
