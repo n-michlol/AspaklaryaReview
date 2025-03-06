@@ -71,6 +71,22 @@ class ApiAspaklaryaReview extends ApiBase {
                     }
                     break;
                     
+                case 'submit':
+                    if (!isset($params['filename']) || !isset($params['pageid'])) {
+                        $this->dieWithError('Missing required parameters', 'missingparam');
+                    }
+                    
+                    $exists = $dbw->selectRow(
+                        'aspaklarya_review_queue',
+                        'arq_id',
+                        [
+                            'arq_filename' => $params['filename'],
+                            'arq_page_id' => (int)$params['pageid'],
+                            'arq_status' => 'pending'
+                        ],
+                        __METHOD__
+                    );
+                    
                     if ($exists) {
                         $this->getResult()->addValue(null, 'success', true);
                         return;
