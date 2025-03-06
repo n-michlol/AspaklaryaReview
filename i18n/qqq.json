@@ -1,0 +1,35 @@
+{
+    "@metadata": {
+        "authors": [
+            "Neriah"
+        ]
+    },
+    "aspaklaryareview": "Name of the extension, used as the API module name and general identifier.",
+    "aspaklaryareview-desc": "{{desc|name=AspaklaryaReview|url=https://github.com/n-michlol/AspaklaryaReview}}\nDescription of the extension for MediaWiki.",
+    "aspaklarya-notification-approved": "Notification message displayed when an image has been approved by a reviewer.\n\nParameters:\n* $1 - The filename of the approved image.",
+    "aspaklarya-notification-edited": "Notification message displayed when an image has been edited and needs rechecking.\n\nParameters:\n* $1 - The filename of the edited image.",
+    "aspaklarya-notification-removed": "Notification message displayed when an image has been removed from articles.\n\nParameters:\n* $1 - The filename of the removed image.",
+    "aspaklarya-queue-approve": "Label for the button to approve an image in the review queue.",
+    "aspaklarya-queue-edited": "Label for the button to mark an image as edited in the review queue.",
+    "aspaklarya-queue-empty": "Message displayed when there are no images in the review queue.",
+    "aspaklarya-queue-error-processing": "Error message displayed when there is an issue processing an image in the review queue.",
+    "aspaklarya-queue-page": "Text indicating the page where the image appears.\n\nParameters:\n* $1 - The title of the page where the image is used.",
+    "aspaklarya-queue-remove": "Label for the button to remove an image from the review queue and articles.",
+    "aspaklarya-queue-requested-by": "Text indicating the user who submitted the image for review.\n\nParameters:\n* $1 - The username of the submitting user.",
+    "aspaklarya-queue-timestamp": "Text indicating when the image was submitted for review.\n\nParameters:\n* $1 - The timestamp of submission (in a human-readable format).",
+    "aspaklarya-queue-title": "Title of the special page showing the image review queue.",
+    "aspaklarya-review-button": "Label for the button or link to open the image review dialog.",
+    "aspaklarya-review-cancel": "Label for the button to cancel the image review submission dialog.",
+    "aspaklarya-review-error": "Error message displayed when submitting an image for review fails.\n\nParameters:\n* $1 - The specific error message or filename causing the error.",
+    "aspaklarya-review-no-images": "Message displayed when there are no images on the current page to submit for review.",
+    "aspaklarya-review-no-selection": "Message displayed when no images are selected in the review dialog before submission.",
+    "aspaklarya-review-partial-error": "Error message displayed when some images fail to be submitted for review.",
+    "aspaklarya-review-submit": "Label for the button to submit selected images for review.",
+    "aspaklarya-review-submitting": "Message displayed while images are being submitted for review.",
+    "aspaklarya-review-success": "Success message displayed after an image is successfully submitted for review.",
+    "aspaklarya-review-title": "Title of the dialog for submitting images for review.",
+    "aspaklarya-review-tooltip": "Tooltip text for the button or link to submit images for review.",
+    "echo-pref-tooltip-aspaklarya-review": "Tooltip for the Echo notification preference to enable notifications about reviewed images.",
+    "notification-link-text-view-file": "Label for the link in notifications to view the file in question.",
+    "right-aspaklarya-review": "Description of the user right required to review images in the queue."
+}
