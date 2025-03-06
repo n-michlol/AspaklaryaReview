@@ -219,7 +219,7 @@
                 filename: image.filename
             }).then(function(response) {
                 console.log('Previous review response for', image.filename, ':', response);
-                if (response.previousReview) {
+                if (response && response.previousReview) {
                     return {
                         image: image,
                         previousReview: response.previousReview
@@ -235,9 +235,9 @@
         Promise.all(checkPromises).then(function(results) {
             const imagesToConfirm = [];
             const imagesToSubmit = [];
-        
+
             results.forEach(function(result) {
-                if (result.previousReview) {
+                if (result.previousReview && result.previousReview !== false) {
                     imagesToConfirm.push(result);
                 } else {
                     imagesToSubmit.push(result.image);
@@ -257,46 +257,59 @@
 
         function confirmPreviouslyReviewed(imagesToConfirm, imagesToSubmit) {
             return new Promise(function(resolve) {
+                console.log('Starting confirmation dialog for', imagesToConfirm.length, 'images');
+        
                 const windowManager = new OO.ui.WindowManager();
                 $('body').append(windowManager.$element);
+                windowManager.addWindows([new OO.ui.MessageDialog()]);
         
-                processNextConfirmation(0);
+                const confirmedImages = [];
+                let currentIndex = 0;
                 
-                function processNextConfirmation(index) {
-                    if (index >= imagesToConfirm.length) {
+                processNextImage();
+                
+                function processNextImage() {
+                    if (currentIndex >= imagesToConfirm.length) {
+                        console.log('Confirmed images:', confirmedImages.length);
                         windowManager.$element.remove();
-                        const confirmedImages = imagesToConfirm
-                            .filter(result => result.confirmed)
-                            .map(result => result.image);
                         resolve(confirmedImages.concat(imagesToSubmit));
                         return;
                     }
                     
-                    const result = imagesToConfirm[index];
-                    const image = result.image;
-                    const previousReview = result.previousReview;
+                    const currentItem = imagesToConfirm[currentIndex];
+                    currentIndex++;
                     
-                    const dialogContent = $('<div></div>');
-                    dialogContent.append($('<p></p>').text(
-                        mw.msg('aspaklarya-review-previously-reviewed', 
-                            image.filename, 
-                            previousReview.status, 
-                            previousReview.timestamp
-                        )
-                    ));
+                    if (!currentItem || !currentItem.image || !currentItem.previousReview) {
+                        processNextImage();
+                        return;
+                    }
                     
-                    const dialog = new OO.ui.MessageDialog({
-                        size: 'medium'
-                    });
-                    
-                    windowManager.addWindows([dialog]);
+                    const image = currentItem.image;
+                    const previousReview = currentItem.previousReview;
             
-                    windowManager.openWindow(dialog, {
+                    console.log('Processing confirmation for', image.filename, previousReview);
+            
+                    const formattedDate = previousReview.timestamp || 'unknown date';
+                    const reviewer = previousReview.reviewer || 'unknown';
+                    const status = previousReview.status || 'unknown';
+                    
+                    const messageContent = $('<div></div>');
+                    messageContent.append(
+                        $('<p></p>').text(
+                            mw.msg('aspaklarya-review-previously-reviewed', 
+                                image.filename, 
+                                status, 
+                                formattedDate
+                            ) + ' ' + mw.msg('aspaklarya-review-by-reviewer', reviewer)
+                        )
+                    );
+                    
+                    const dialog = windowManager.openWindow('message', {
                         title: mw.msg('aspaklarya-review-confirm-title'),
-                        message: dialogContent,
+                        message: messageContent,
                         actions: [
                             {
-                                action: 'reject',
+                                action: 'cancel',
                                 label: mw.msg('aspaklarya-review-confirm-no'),
                                 flags: ['safe']
                             },
@@ -306,9 +319,17 @@
                                 flags: ['primary', 'progressive']
                             }
                         ]
-                    }).closed.then(function(data) {
-                        result.confirmed = (data && data.action === 'accept');
-                        processNextConfirmation(index + 1);
+                    });
+                    
+                    dialog.closed.then(function(data) {
+                        if (data && data.action === 'accept') {
+                            confirmedImages.push(image);
+                        }
+                        
+                        processNextImage();
+                    }).catch(function(error) {
+                        console.error('Dialog error:', error);
+                        processNextImage();
                     });
                 }
             });
