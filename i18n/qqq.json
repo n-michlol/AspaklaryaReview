@@ -31,5 +31,10 @@
     "aspaklarya-review-tooltip": "Tooltip text for the button or link to submit images for review.",
     "echo-pref-tooltip-aspaklarya-review": "Tooltip for the Echo notification preference to enable notifications about reviewed images.",
     "notification-link-text-view-file": "Label for the link in notifications to view the file in question.",
-    "right-aspaklarya-review": "Description of the user right required to review images in the queue."
+    "right-aspaklarya-review": "Description of the user right required to review images in the queue.",
+    "aspaklarya-review-previously-reviewed": "Message shown when an image was previously reviewed. Parameters:\n* $1 - Filename of the image\n* $2 - Status of the previous review (approved, removed, or edited)\n* $3 - Timestamp of the previous review",
+    "aspaklarya-review-confirm-title": "Title of the confirmation dialog for re-reviewing images",
+    "aspaklarya-review-confirm-yes": "Button text to confirm re-review of an image",
+    "aspaklarya-review-confirm-no": "Button text to cancel re-review of an image",
+    "aspaklarya-queue-previously-reviewed": "Notice shown in the queue when an image was previously reviewed. Parameters:\n* $1 - Status of the previous review (approved, removed, or edited)\n* $2 - Timestamp of the previous review\n* $3 - Username of the reviewer"
 }

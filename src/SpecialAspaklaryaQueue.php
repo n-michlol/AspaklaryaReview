@@ -116,6 +116,36 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             'data-id' => $id
         ]);
         
+        $dbr = $this->loadBalancer->getConnection(DB_REPLICA);
+        $previousReview = $dbr->selectRow(
+            'aspaklarya_review_queue',
+            '*',
+            [
+                'arq_filename' => $filename,
+                'arq_status' => ['approved', 'removed', 'edited'],
+                'arq_id' => ['!=' => $id]
+            ],
+            __METHOD__,
+            [
+                'ORDER BY' => 'arq_review_timestamp DESC'
+            ]
+        );
+
+        if ($previousReview) {
+            $reviewer = $this->userFactory->newFromId($previousReview->arq_reviewer);
+            $reviewerName = $reviewer ? $reviewer->getName() : '(unknown)';
+            $language = $this->getLanguage();
+            $formattedReviewDate = $language->userTimeAndDate($previousReview->arq_review_timestamp, $this->getUser());
+
+            $html .= Html::rawElement('div', [
+                'class' => 'aspaklarya-queue-previous-review aspaklarya-status-' . $previousReview->arq_status
+            ], $this->msg('aspaklarya-queue-previously-reviewed', 
+                $previousReview->arq_status, 
+                $formattedReviewDate, 
+                $reviewerName
+            )->parse());
+        }
+
         if ($fileTitle) {
             $services = MediaWikiServices::getInstance();
             $repoGroup = $services->getRepoGroup();

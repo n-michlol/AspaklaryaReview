@@ -42,21 +42,34 @@ class ApiAspaklaryaReview extends ApiBase {
         
         try {
             switch ($action) {
-                case 'submit':
-                    if (!isset($params['filename']) || !isset($params['pageid'])) {
-                        $this->dieWithError('Missing required parameters', 'missingparam');
+                case 'checkprevious':
+                    if (!isset($params['filename'])) {
+                        $this->dieWithError('Missing filename parameter', 'missingparam');
                     }
-                    
-                    $exists = $dbw->selectRow(
+
+                    $row = $dbw->selectRow(
                         'aspaklarya_review_queue',
-                        'arq_id',
+                        '*',
                         [
                             'arq_filename' => $params['filename'],
-                            'arq_page_id' => (int)$params['pageid'],
-                            'arq_status' => 'pending'
+                            'arq_status' => ['approved', 'removed', 'edited']
                         ],
-                        __METHOD__
+                        __METHOD__,
+                        [
+                            'ORDER BY' => 'arq_review_timestamp DESC'
+                        ]
                     );
+
+                    if ($row) {
+                        $this->getResult()->addValue(null, 'previousReview', [
+                            'status' => $row->arq_status,
+                            'timestamp' => wfTimestamp(TS_ISO_8601, $row->arq_review_timestamp),
+                            'reviewer' => $this->userFactory->newFromId($row->arq_reviewer)->getName()
+                        ]);
+                    } else {
+                        $this->getResult()->addValue(null, 'previousReview', false);
+                    }
+                    break;
                     
                     if ($exists) {
                         $this->getResult()->addValue(null, 'success', true);
@@ -357,7 +370,7 @@ class ApiAspaklaryaReview extends ApiBase {
     public function getAllowedParams() {
         return [
             'do' => [
-                ApiBase::PARAM_TYPE => ['submit', 'remove', 'approve', 'edited'],
+                ApiBase::PARAM_TYPE => ['submit', 'remove', 'approve', 'edited', 'checkprevious'],
                 ApiBase::PARAM_REQUIRED => false,
                 ParamValidator::PARAM_DEFAULT => 'submit'
             ],
@@ -389,7 +402,9 @@ class ApiAspaklaryaReview extends ApiBase {
             'action=aspaklaryareview&do=submit&filename=Example.jpg&pageid=123'
                 => 'apihelp-aspaklaryareview-example-submit',
             'action=aspaklaryareview&do=remove&id=456'
-                => 'apihelp-aspaklaryareview-example-remove'
+                => 'apihelp-aspaklaryareview-example-remove',
+            'action=aspaklaryareview&do=checkprevious&filename=Example.jpg'
+                => 'apihelp-aspaklaryareview-example-checkprevious'
         ];
     }
 }

@@ -199,7 +199,7 @@
         const api = new mw.Api();
         let successCount = 0;
         let errorCount = 0;
-        
+
         const notificationSystem = mw.notification || {
             notify: function(message, options) {
                 const notifier = { close: function() { /* nothing to do */ } };
@@ -210,68 +210,176 @@
                 return notifier;
             }
         };
-        
-        const notification = notificationSystem.notify(mw.msg('aspaklarya-review-submitting'), {autoHide: false});
-        
-        const promises = images.map(image => {
-            return api.postWithToken('csrf', {
+
+        const checkPromises = images.map(image => {
+            return api.get({
                 action: 'aspaklaryareview',
-                do: 'submit',
-                filename: image.filename,
-                pageid: mw.config.get('wgArticleId')
+                do: 'checkprevious',
+                filename: image.filename
             }).then(function(response) {
-                if (response.success) {
-                    const $parent = image.element.parent();
-                    if (!$parent.hasClass('aspaklarya-image-wrapper')) {
-                        image.element.wrap('<div class="aspaklarya-image-wrapper"></div>');
-                    }
-                    
-                    const hasReviewPermission = mw.config.get('wgUserGroups', []).includes('aspaklarya2');
-                    if (!hasReviewPermission) {
-                        image.element.parent().addClass('aspaklarya-hidden');
-                    }
-                    
-                    successCount++;
+                if (response.previousReview) {
+                    return {
+                        image: image,
+                        previousReview: response.previousReview
+                    };
                 }
-                return response;
-            }).catch(function(code, data) {
-                console.error('Error submitting image:', code, data);
-                errorCount++;
-                if (mw.notify) {
-                    if (data && data.exception) {
-                        mw.notify(mw.msg('aspaklarya-review-error', data.exception), {type: 'error'});
-                    } else {
-                        mw.notify(mw.msg('aspaklarya-review-error', image.filename), {type: 'error'});
-                    }
-                } else {
-                    if (data && data.exception) {
-                        alert(mw.msg('aspaklarya-review-error', data.exception));
-                    } else {
-                        alert(mw.msg('aspaklarya-review-error', image.filename));
-                    }
-                }
-                return null;
+                return { image: image, previousReview: null };
+            }).catch(function() {
+                return { image: image, previousReview: null };
             });
         });
+
+        $.when.apply($, checkPromises).then(function() {
+            const imagesToConfirm = [];
+            const imagesToSubmit = [];
         
-        $.when.apply($, promises).always(function() {
-            notification.close();
-            
-            if (successCount > 0) {
-                if (mw.notify) {
-                    mw.notify(mw.msg('aspaklarya-review-success'), {type: 'success'});
+            Array.from(arguments).forEach(function(result) {
+                if (result.previousReview) {
+                    imagesToConfirm.push(result);
                 } else {
-                    alert(mw.msg('aspaklarya-review-success'));
+                    imagesToSubmit.push(result.image);
                 }
-            }
-            
-            if (errorCount > 0) {
-                if (mw.notify) {
-                    mw.notify(mw.msg('aspaklarya-review-partial-error'), {type: 'error'});
-                } else {
-                    alert(mw.msg('aspaklarya-review-partial-error'));
-                }
+            });
+
+            if (imagesToConfirm.length > 0) {
+                confirmPreviouslyReviewed(imagesToConfirm, imagesToSubmit).then(function(allImages) {
+                    if (allImages.length > 0) {
+                        processSubmission(allImages);
+                    }
+                });
+            } else if (imagesToSubmit.length > 0) {
+                processSubmission(imagesToSubmit);
             }
         });
+
+        function confirmPreviouslyReviewed(imagesToConfirm, imagesToSubmit) {
+            return new Promise(function(resolve) {
+                const confirmationPromises = [];
+                let remainingConfirmations = imagesToConfirm.length;
+
+                imagesToConfirm.forEach(function(result) {
+                    const image = result.image;
+                    const previousReview = result.previousReview;
+
+                    confirmationPromises.push(new Promise(function(confirmResolve) {
+                        const dialogContent = $('<div></div>');
+
+                        dialogContent.append($('<p></p>').text(
+                            mw.msg('aspaklarya-review-previously-reviewed', 
+                                image.filename, 
+                                previousReview.status, 
+                                previousReview.timestamp
+                            )
+                        ));
+
+                        const dialog = new OO.ui.MessageDialog({
+                            size: 'medium'
+                        });
+
+                        const windowManager = new OO.ui.WindowManager();
+                        $('body').append(windowManager.$element);
+                        windowManager.addWindows([dialog]);
+
+                        windowManager.openWindow(dialog, {
+                            title: mw.msg('aspaklarya-review-confirm-title'),
+                            message: dialogContent,
+                            actions: [
+                                {
+                                    action: 'reject',
+                                    label: mw.msg('aspaklarya-review-confirm-no'),
+                                    flags: ['safe']
+                                },
+                                {
+                                    action: 'accept',
+                                    label: mw.msg('aspaklarya-review-confirm-yes'),
+                                    flags: ['primary', 'progressive']
+                                }
+                            ]
+                        }).closed.then(function(data) {
+                            if (data && data.action === 'accept') {
+                                confirmResolve(image);
+                            } else {
+                                confirmResolve(null);
+                            }
+
+                            remainingConfirmations--;
+                            if (remainingConfirmations === 0) {
+                                windowManager.$element.remove();
+                            }
+                        });
+                    }));
+                });
+
+                Promise.all(confirmationPromises).then(function(results) {
+                    const confirmedImages = results.filter(Boolean);
+                    resolve(confirmedImages.concat(imagesToSubmit));
+                });
+            });
+        }
+    
+        function processSubmission(images) {
+            const notification = notificationSystem.notify(mw.msg('aspaklarya-review-submitting'), {autoHide: false});
+
+            const promises = images.map(image => {
+                return api.postWithToken('csrf', {
+                    action: 'aspaklaryareview',
+                    do: 'submit',
+                    filename: image.filename,
+                    pageid: mw.config.get('wgArticleId')
+                }).then(function(response) {
+                    if (response.success) {
+                        const $parent = image.element.parent();
+                        if (!$parent.hasClass('aspaklarya-image-wrapper')) {
+                            image.element.wrap('<div class="aspaklarya-image-wrapper"></div>');
+                        }
+
+                        const hasReviewPermission = mw.config.get('wgUserGroups', []).includes('aspaklarya2');
+                        if (!hasReviewPermission) {
+                            image.element.parent().addClass('aspaklarya-hidden');
+                        }
+
+                        successCount++;
+                    }
+                    return response;
+                }).catch(function(code, data) {
+                    console.error('Error submitting image:', code, data);
+                    errorCount++;
+                    if (mw.notify) {
+                        if (data && data.exception) {
+                            mw.notify(mw.msg('aspaklarya-review-error', data.exception), {type: 'error'});
+                        } else {
+                            mw.notify(mw.msg('aspaklarya-review-error', image.filename), {type: 'error'});
+                        }
+                    } else {
+                        if (data && data.exception) {
+                            alert(mw.msg('aspaklarya-review-error', data.exception));
+                        } else {
+                            alert(mw.msg('aspaklarya-review-error', image.filename));
+                        }
+                    }
+                    return null;
+                });
+            });
+
+            $.when.apply($, promises).always(function() {
+                notification.close();
+
+                if (successCount > 0) {
+                    if (mw.notify) {
+                        mw.notify(mw.msg('aspaklarya-review-success'), {type: 'success'});
+                    } else {
+                        alert(mw.msg('aspaklarya-review-success'));
+                    }
+                }
+
+                if (errorCount > 0) {
+                    if (mw.notify) {
+                        mw.notify(mw.msg('aspaklarya-review-partial-error'), {type: 'error'});
+                    } else {
+                        alert(mw.msg('aspaklarya-review-partial-error'));
+                    }
+                }
+            });
+        }
     }
 })();

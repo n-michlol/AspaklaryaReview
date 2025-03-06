@@ -61,3 +61,25 @@
     color: #666;
     font-style: italic;
 }
+
+.aspaklarya-queue-previous-review {
+    margin-bottom: 1em;
+    padding: 0.5em;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.aspaklarya-status-approved {
+    background-color: rgba(0, 128, 0, 0.1);
+    border-left: 3px solid #008000;
+}
+
+.aspaklarya-status-removed {
+    background-color: rgba(255, 0, 0, 0.1);
+    border-left: 3px solid #ff0000;
+}
+
+.aspaklarya-status-edited {
+    background-color: rgba(255, 165, 0, 0.1);
+    border-left: 3px solid #ffa500;
+}

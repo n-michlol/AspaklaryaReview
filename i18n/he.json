@@ -1,7 +1,7 @@
 {
     "@metadata": {
         "authors": [
-            "Neriah"
+            "נריה"
         ]
     },
     "aspaklaryareview": "בדיקת תמונות",
@@ -31,5 +31,10 @@
     "aspaklarya-review-tooltip": "שליחת תמונות בדף זה לבדיקה חוזרת",
     "echo-pref-tooltip-aspaklarya-review": "הצג התראות על תמונות שנבדקו בתור הבדיקה",
     "notification-link-text-view-file": "צפייה בקובץ",
-    "right-aspaklarya-review": "בדיקת תמונות"
+    "right-aspaklarya-review": "בדיקת תמונות",
+    "aspaklarya-review-previously-reviewed": "התמונה \"$1\" כבר נבדקה בעבר עם הסטטוס \"$2\" בתאריך $3. האם אתה עדיין רוצה לשלוח אותה לבדיקה מחדש?",
+    "aspaklarya-review-confirm-title": "אישור בדיקה מחדש",
+    "aspaklarya-review-confirm-yes": "כן, שלח לבדיקה מחדש",
+    "aspaklarya-review-confirm-no": "לא, בטל",
+    "aspaklarya-queue-previously-reviewed": "תמונה זו נבדקה בעבר, והוגדרה כ \"$1\" בתאריך $2 על ידי $3"
 }
