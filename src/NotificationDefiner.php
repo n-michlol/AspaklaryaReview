@@ -12,15 +12,15 @@ class NotificationDefiner {
         }
 
         $icons['aspaklarya-approved'] = [
-            'path' => 'Echo/modules/icons/mention-status-bundle-progressive.svg',
+            'path' => 'AspaklaryaReview/modules/icons/image-approved.svg',
         ];
         
         $icons['aspaklarya-edited'] = [
-            'path' => 'Echo/modules/icons/edit-progressive.svg',
+            'path' => 'AspaklaryaReview/modules/icons/image-edited.svg',
         ];
         
         $icons['aspaklarya-removed'] = [
-            'path' => 'Echo/modules/icons/articleCheck-progressive.svg',
+            'path' => 'AspaklaryaReview/modules/icons/image-removed.svg',
         ];
         
         $categories['aspaklarya-review'] = [
