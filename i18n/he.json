@@ -36,5 +36,15 @@
     "aspaklarya-review-confirm-title": "אישור בדיקה מחדש",
     "aspaklarya-review-confirm-yes": "כן, שלח לבדיקה מחדש",
     "aspaklarya-review-confirm-no": "לא, בטל",
-    "aspaklarya-queue-previously-reviewed": "תמונה זו נבדקה בעבר, והוגדרה כ \"$1\" בתאריך $2 על ידי $3"
+    "aspaklarya-queue-previously-reviewed": "תמונה זו נבדקה בעבר עם סטטוס \"$1\" בתאריך $2 על ידי $3",
+    "log-name-aspaklaryareview": "יומן בדיקת תמונות",
+    "log-description-aspaklaryareview": "יומן זה מתעד פעולות בדיקת תמונות",
+    "logentry-aspaklaryareview-submit": "$1 {{GENDER:$2|שלח|שלחה}} את התמונה $4 לבדיקה",
+    "logentry-aspaklaryareview-approved": "$1 {{GENDER:$2|אישר|אישרה}} את התמונה $4",
+    "logentry-aspaklaryareview-removed": "$1 {{GENDER:$2|הסיר|הסירה}} את התמונה $4",
+    "logentry-aspaklaryareview-edited": "$1 {{GENDER:$2|סימן|סימנה}} את התמונה $4 כערוכה",
+    "right-aspaklarya-review-log": "צפייה ביומן בדיקת תמונות",
+    "apihelp-query+aspaklaryalog-example-simple": "הצג רשומות אחרונות ביומן בדיקת תמונות",
+    "apihelp-query+aspaklaryalog-example-byaction": "הצג רשומות אחרונות של תמונות שאושרו",
+    "apihelp-query+aspaklaryalog-example-byuser": "הצג רשומות יומן של משתמש מסוים"
 }
