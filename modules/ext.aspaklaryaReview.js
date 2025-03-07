@@ -212,13 +212,15 @@
         };
 
         const checkPromises = images.map(image => {
-            console.log('Checking previous review for', image.filename);
-            return api.get({
+            const filename = image.filename;
+            console.log('Checking previous review for', filename);
+
+            return api.postWithToken('csrf', {
                 action: 'aspaklaryareview',
                 do: 'checkprevious',
-                filename: image.filename
+                filename: filename
             }).then(function(response) {
-                console.log('Previous review response for', image.filename, ':', response);
+                console.log('Previous review response for', filename, ':', response);
                 if (response && response.previousReview) {
                     return {
                         image: image,
@@ -226,8 +228,8 @@
                     };
                 }
                 return { image: image, previousReview: null };
-            }).catch(function(error) {
-                console.error('Error checking previous review for', image.filename, ':', error);
+            }).catch(function(error, data) {
+                console.error('Error checking previous review for', filename, ':', error, data);
                 return { image: image, previousReview: null };
             });
         });
