@@ -36,5 +36,15 @@
     "aspaklarya-review-confirm-title": "Confirm Re-review",
     "aspaklarya-review-confirm-yes": "Yes, send for re-review",
     "aspaklarya-review-confirm-no": "No, cancel",
-    "aspaklarya-queue-previously-reviewed": "This image was previously reviewed with status \"$1\" on $2 by $3"
+    "aspaklarya-queue-previously-reviewed": "This image was previously reviewed with status \"$1\" on $2 by $3", 
+    "log-name-aspaklaryareview": "Aspaklarya image review log",
+    "log-description-aspaklaryareview": "This log tracks image review actions",
+    "logentry-aspaklaryareview-submit": "$1 {{GENDER:$2|submitted}} image $4 for review",
+    "logentry-aspaklaryareview-approved": "$1 {{GENDER:$2|approved}} image $4",
+    "logentry-aspaklaryareview-removed": "$1 {{GENDER:$2|removed}} image $4",
+    "logentry-aspaklaryareview-edited": "$1 {{GENDER:$2|marked}} image $4 as edited",
+    "right-aspaklarya-review-log": "View the Aspaklarya image review log",
+    "apihelp-query+aspaklaryalog-example-simple": "List recent Aspaklarya image review log entries",
+    "apihelp-query+aspaklaryalog-example-byaction": "List recent approved image log entries",
+    "apihelp-query+aspaklaryalog-example-byuser": "List log entries by specific user"
 }
