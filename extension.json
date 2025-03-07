@@ -17,6 +17,18 @@
     "AutoloadNamespaces": {
         "MediaWiki\\Extension\\AspaklaryaReview\\": "src/"
     },
+    "LogTypes": [
+        "aspaklaryareview"
+    ],
+    "LogActionsHandlers": {
+        "aspaklaryareview/submit": "MediaWiki\\Extension\\AspaklaryaReview\\AspaklaryaLogFormatter",
+        "aspaklaryareview/approved": "MediaWiki\\Extension\\AspaklaryaReview\\AspaklaryaLogFormatter",
+        "aspaklaryareview/removed": "MediaWiki\\Extension\\AspaklaryaReview\\AspaklaryaLogFormatter",
+        "aspaklaryareview/edited": "MediaWiki\\Extension\\AspaklaryaReview\\AspaklaryaLogFormatter"
+    },
+    "LogRestrictions": {
+        "aspaklaryareview": "aspaklarya-review-log"
+    },
     "SpecialPages": {
       "AspaklaryaQueue": {
         "class": "MediaWiki\\Extension\\AspaklaryaReview\\SpecialAspaklaryaQueue",
@@ -40,6 +52,13 @@
             "class": "MediaWiki\\Extension\\AspaklaryaReview\\Api\\ApiQueryAspaklaryaReview",
             "services": [
                 "DBLoadBalancer"
+            ]
+            },
+        "aspaklaryalog": {
+            "class": "MediaWiki\\Extension\\AspaklaryaReview\\Api\\ApiQueryAspaklaryaLog",
+            "services": [
+                "DBLoadBalancer",
+                "UserFactory"
             ]
         }
     },
@@ -132,11 +151,20 @@
     },
     "GroupPermissions": {
         "aspaklarya2": {
-            "aspaklarya-review": true
+            "aspaklarya-review": true,
+            "aspaklarya-review-log": true
+        },
+        "עורך_אספקלריה": {
+            "aspaklarya-review-log": true
+        },
+        "sysop": {
+            "aspaklarya-review-log": true
         }
     },
     "AvailableRights": [
-        "aspaklarya-review"
+        "aspaklarya-review",
+        "aspaklarya-review-log"
+
     ],
     "manifest_version": 2
 }

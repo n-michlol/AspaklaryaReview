@@ -12,6 +12,7 @@ use MediaWiki\Revision\SlotRecord;
 use MediaWiki\MediaWikiServices;
 use Wikimedia\ParamValidator\ParamValidator;
 use ExtensionRegistry;
+use ManualLogEntry;
 
 class ApiAspaklaryaReview extends ApiBase {
     private $loadBalancer;
@@ -122,6 +123,7 @@ class ApiAspaklaryaReview extends ApiBase {
                     }
                     
                     $this->getResult()->addValue(null, 'success', true);
+                    $this->addLogEntry('submit', $user->getId(), (int)$params['pageid'], $params['filename']);
                     break;
                     
                 case 'remove':
@@ -168,6 +170,7 @@ class ApiAspaklaryaReview extends ApiBase {
                     }
                     
                     $this->getResult()->addValue(null, 'success', true);
+                    $this->addLogEntry('removed', $user->getId(), $row->arq_page_id, $row->arq_filename);
                     break;
                     
                 case 'approve':
@@ -212,6 +215,7 @@ class ApiAspaklaryaReview extends ApiBase {
                     }
                     
                     $this->getResult()->addValue(null, 'success', true);
+                    $this->addLogEntry('approved', $user->getId(), $row->arq_page_id, $row->arq_filename);
                     break;
                     
                 case 'edited':
@@ -256,6 +260,7 @@ class ApiAspaklaryaReview extends ApiBase {
                     }
                     
                     $this->getResult()->addValue(null, 'success', true);
+                    $this->addLogEntry('edited', $user->getId(), $row->arq_page_id, $row->arq_filename);
                     break;
                     
                 default:
@@ -435,5 +440,31 @@ class ApiAspaklaryaReview extends ApiBase {
             'action=aspaklaryareview&do=checkprevious&filename=Example.jpg'
                 => 'apihelp-aspaklaryareview-example-checkprevious'
         ];
+    }
+
+    private function addLogEntry($action, $userId, $pageId, $filename) {
+        try {
+            $logEntry = new ManualLogEntry('aspaklaryareview', $action);
+            $logEntry->setPerformer($this->getUser());
+            $title = Title::newFromID($pageId);
+            if ($title) {
+                $logEntry->setTarget($title);
+            } else {
+                $fileTitle = Title::makeTitle(NS_FILE, $filename);
+                $logEntry->setTarget($fileTitle);
+            }
+            
+            $logEntry->setParameters([
+                'filename' => $filename,
+                '4::filename' => $filename
+            ]);
+            
+            $logId = $logEntry->insert();
+            $logEntry->publish($logId);
+            return $logId;
+        } catch (\Exception $e) {
+            wfLogWarning('Failed to add log entry: ' . $e->getMessage());
+            return false;
+        }
     }
 }
