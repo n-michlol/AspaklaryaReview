@@ -6,9 +6,11 @@
             return;
         }
 
-        // Add the module only for logged-in users - I thought it was better that way.
-        // If there is a different decision, it will require thinking about what to do with 
-        // the messages to the user who sent the image for review.
+        /*
+        Add the module only for logged-in users - I thought it was better that way.
+        If there is a different decision, it will require thinking about what to do with 
+        the messages to the user who sent the image for review.
+        */
         if (mw.user.isAnon()) {
             checkSubmittedImages();
             return;
