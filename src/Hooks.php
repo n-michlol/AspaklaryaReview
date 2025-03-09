@@ -24,7 +24,7 @@ class Hooks implements BeforePageDisplayHook {
     public function onBeforePageDisplay($out, $skin): void {
         $title = $out->getTitle();
         
-        if ($title->inNamespace(NS_MAIN) && $title->exists() && $out->getUser()->isRegistered()) {
+        if ($title->inNamespace(NS_MAIN) && $title->exists()) {
         /*
         Add the module only for logged-in users - I thought it was better that way.
         If there is a different decision, it will require thinking about what to do with 
