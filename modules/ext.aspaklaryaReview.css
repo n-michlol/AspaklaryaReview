@@ -27,6 +27,7 @@ body.aspaklarya-reviewer .aspaklarya-image-wrapper.aspaklarya-hidden img {
 .aspaklarya-review-dialog {
     max-width: 100%;
     overflow-x: auto;
+    width: 800px;
 }
 
 .aspaklarya-review-images {

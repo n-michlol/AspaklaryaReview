@@ -101,6 +101,10 @@
                 return;
             }
             
+            if ($img.width() < 50 || $img.height() < 50) {
+                return;
+            }
+            
             let filename = decodeURIComponent(match[1]);
             filename = filename.replace(/^\d+px-/, '');
             
