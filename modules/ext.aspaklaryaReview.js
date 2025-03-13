@@ -305,16 +305,33 @@
             
                     console.log('Processing confirmation for', image.filename, previousReview);
             
-                    const formattedDate = previousReview.timestamp || 'unknown date';
-                    const reviewer = previousReview.reviewer || 'unknown';
+                    const timestamp = previousReview.timestamp || '';
+                    let formattedDate = 'unknown date';
+                    if (timestamp) {
+                        const date = new Date(timestamp);
+                        formattedDate = date.toLocaleString(
+                            mw.config.get('wgUserLanguage'),
+                            {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            }
+                        );
+                    }
+                    
                     const status = previousReview.status || 'unknown';
+                    const statusMsg = mw.msg('aspaklarya-status-' + status);
+                    
+                    const reviewer = previousReview.reviewer || 'unknown';
                     
                     const messageContent = $('<div></div>');
                     messageContent.append(
                         $('<p></p>').text(
                             mw.msg('aspaklarya-review-previously-reviewed', 
                                 image.filename, 
-                                status, 
+                                statusMsg, 
                                 formattedDate
                             ) + ' ' + mw.msg('aspaklarya-review-by-reviewer', reviewer)
                         )

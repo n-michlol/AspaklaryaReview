@@ -93,7 +93,12 @@
                 "aspaklarya-review-previously-reviewed",
                 "aspaklarya-review-confirm-title",
                 "aspaklarya-review-confirm-yes",
-                "aspaklarya-review-confirm-no"
+                "aspaklarya-review-confirm-no",
+                "aspaklarya-status-approved",
+                "aspaklarya-status-removed",
+                "aspaklarya-status-edited",
+                "aspaklarya-status-pending",
+                "aspaklarya-status-unknown"
             ],
             "dependencies": [
                 "mediawiki.api",
@@ -152,12 +157,6 @@
     "GroupPermissions": {
         "aspaklarya2": {
             "aspaklarya-review": true,
-            "aspaklarya-review-log": true
-        },
-        "עורך_אספקלריה": {
-            "aspaklarya-review-log": true
-        },
-        "sysop": {
             "aspaklarya-review-log": true
         }
     },
