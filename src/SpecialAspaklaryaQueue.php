@@ -89,8 +89,8 @@ class SpecialAspaklaryaQueue extends SpecialPage {
 
         $out->enableOOUI();
         $out->addModules(['ext.aspaklaryaQueue', 'oojs-ui-core', 'oojs-ui-widgets']);
-        $out->setPageTitle($this->msg('aspaklarya-queue-title'));
-
+        $out->setPageTitle($this->msg('aspaklarya-queue-title')->text());
+        
         try {
             $pager = new AspaklaryaQueuePager($this->getContext(), $this->loadBalancer, $this->userFactory);
             $pager->setParent($this);
