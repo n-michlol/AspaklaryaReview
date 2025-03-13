@@ -89,7 +89,7 @@ class SpecialAspaklaryaQueue extends SpecialPage {
 
         $out->enableOOUI();
         $out->addModules(['ext.aspaklaryaQueue', 'oojs-ui-core', 'oojs-ui-widgets']);
-        $out->setPageTitle($this->msg('aspaklarya-queue-title')->text());
+        $out->setPageTitle($this->msg('aspaklarya-queue-title'));
 
         try {
             $pager = new AspaklaryaQueuePager($this->getContext(), $this->loadBalancer, $this->userFactory);
@@ -135,11 +135,13 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             $reviewerName = $reviewer ? $reviewer->getName() : '(unknown)';
             $language = $this->getLanguage();
             $formattedReviewDate = $language->userTimeAndDate($previousReview->arq_review_timestamp, $this->getUser());
+            
+            $statusMsg = $this->msg('aspaklarya-status-' . $previousReview->arq_status)->text();
         
             $html .= Html::rawElement('div', [
                 'class' => 'aspaklarya-queue-previous-review aspaklarya-status-' . $previousReview->arq_status
             ], $this->msg('aspaklarya-queue-previously-reviewed', 
-                $previousReview->arq_status, 
+                $statusMsg, 
                 $formattedReviewDate, 
                 $reviewerName
             )->parse());
