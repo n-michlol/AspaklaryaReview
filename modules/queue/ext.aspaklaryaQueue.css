@@ -83,3 +83,36 @@
     background-color: rgba(255, 165, 0, 0.1);
     border-left: 3px solid #ffa500;
 }
+
+.aspaklarya-action-messages {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    width: 300px;
+}
+
+.aspaklarya-message {
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    opacity: 0.9;
+    transition: opacity 0.3s;
+}
+
+.aspaklarya-message:hover {
+    opacity: 1;
+}
+
+.aspaklarya-message-success {
+    background-color: #dff0d8;
+    border-left: 4px solid #5cb85c;
+    color: #3c763d;
+}
+
+.aspaklarya-message-error {
+    background-color: #f2dede;
+    border-left: 4px solid #d9534f;
+    color: #a94442;
+}
