@@ -1,10 +1,6 @@
 (function() {
     'use strict';
 
-    mw.hook('wikipage.content').add(function() {
-        initializeEventListeners();
-    });
-
     function initializeEventListeners() {
         $(document).on('click', '.aspaklarya-action-remove', function(e) {
             e.preventDefault();
@@ -34,6 +30,19 @@
                 return;
             }
             handleAction(id, 'edited');
+        });
+
+        $(document).on('click', '.aspaklarya-queue-image-link', function(e) {
+            if (e.ctrlKey || e.metaKey || e.which === 2) {
+                return true;
+            }
+
+            e.preventDefault();
+            var $this = $(this);
+            var fileUrl = $this.data('file-url');
+            
+            window.open(fileUrl, '_blank');
+            return false;
         });
     }
 
@@ -106,4 +115,12 @@
                 mw.notify(errorMsg, {type: 'error'});
             });
     }
+
+    $(function() {
+        initializeEventListeners();
+    });
+
+    mw.hook('wikipage.content').add(function() {
+        initializeEventListeners();
+    });
 })();

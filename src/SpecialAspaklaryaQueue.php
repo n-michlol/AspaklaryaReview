@@ -155,10 +155,13 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             if ($file) {
                 $thumb = $file->transform(['width' => 300]);
                 if ($thumb) {
+                    $filePageUrl = $fileTitle->getLocalURL();
                     $fileUrl = $file->getUrl();
+                    
                     $html .= Html::openElement('a', [
-                        'href' => $fileUrl,
-                        'class' => 'aspaklarya-queue-image-link'
+                        'href' => $filePageUrl,
+                        'class' => 'aspaklarya-queue-image-link',
+                        'data-file-url' => $fileUrl
                     ]);
                     $html .= $thumb->toHtml(['class' => 'aspaklarya-queue-image']);
                     $html .= Html::closeElement('a');
@@ -220,7 +223,7 @@ class SpecialAspaklaryaQueue extends SpecialPage {
         
         return $html;
     }
-
+    
     protected function getGroupName() {
         return 'media';
     }
