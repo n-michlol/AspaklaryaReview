@@ -24,6 +24,12 @@ body.aspaklarya-reviewer .aspaklarya-image-wrapper.aspaklarya-hidden img {
     filter: none;
 }
 
+.aspaklarya-disabled-link {
+    display: inline-block;
+    cursor: default !important;
+    pointer-events: none;
+}
+
 .aspaklarya-review-dialog {
     max-width: 100%;
     overflow-x: auto;
