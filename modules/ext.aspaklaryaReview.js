@@ -90,10 +90,60 @@
                             
                             if (!hasReviewPermission) {
                                 $img.parent().addClass('aspaklarya-hidden');
+                                
+                                const $link = $img.closest('a');
+                                if ($link.length) {
+                                    const $wrapper = $('<div class="aspaklarya-disabled-link"></div>');
+                                    $wrapper.html($link.html());
+                                    $link.replaceWith($wrapper);
+                                }
+                                
+                                $img.on('click mousedown touchstart pointerdown mouseup touchend pointerup', function(e) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    return false;
+                                });
+                                
+                                $(document).on('click mousedown touchstart pointerdown mouseup touchend pointerup', '.aspaklarya-hidden img, .aspaklarya-disabled-link', function(e) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    return false;
+                                });
+                                
+                                setTimeout(function() {
+                                    $('.aspaklarya-hidden .mw-mmv-trigger').removeClass('mw-mmv-trigger');
+                                }, 100);
                             }
                         });
                     }
                 });
+                
+                if (!hasReviewPermission) {
+                    const observer = new MutationObserver(function(mutations) {
+                        mutations.forEach(function(mutation) {
+                            if (mutation.type === 'attributes' || mutation.type === 'childList') {
+                                $('.aspaklarya-hidden .mw-mmv-trigger').removeClass('mw-mmv-trigger');
+                                
+                                $('.aspaklarya-hidden img').each(function() {
+                                    const $img = $(this);
+                                    const $link = $img.closest('a:not(.aspaklarya-observed)');
+                                    if ($link.length) {
+                                        const $wrapper = $('<div class="aspaklarya-disabled-link"></div>');
+                                        $wrapper.html($link.html());
+                                        $link.replaceWith($wrapper);
+                                    }
+                                });
+                            }
+                        });
+                    });
+                    
+                    observer.observe(document.body, { 
+                        childList: true, 
+                        subtree: true,
+                        attributes: true,
+                        attributeFilter: ['class']
+                    });
+                }
             }
         }).fail(function(error) {
             console.error('Failed to check submitted images:', error);
@@ -227,14 +277,12 @@
 
         const checkPromises = images.map(image => {
             const filename = image.filename;
-            console.log('Checking previous review for', filename);
 
             return api.postWithToken('csrf', {
                 action: 'aspaklaryareview',
                 do: 'checkprevious',
                 filename: filename
             }).then(function(response) {
-                console.log('Previous review response for', filename, ':', response);
                 if (response && response.previousReview) {
                     return {
                         image: image,
@@ -243,7 +291,6 @@
                 }
                 return { image: image, previousReview: null };
             }).catch(function(error, data) {
-                console.error('Error checking previous review for', filename, ':', error, data);
                 return { image: image, previousReview: null };
             });
         });
@@ -273,8 +320,6 @@
 
         function confirmPreviouslyReviewed(imagesToConfirm, imagesToSubmit) {
             return new Promise(function(resolve) {
-                console.log('Starting confirmation dialog for', imagesToConfirm.length, 'images');
-        
                 const windowManager = new OO.ui.WindowManager();
                 $('body').append(windowManager.$element);
                 windowManager.addWindows([new OO.ui.MessageDialog()]);
@@ -286,7 +331,6 @@
                 
                 function processNextImage() {
                     if (currentIndex >= imagesToConfirm.length) {
-                        console.log('Confirmed images:', confirmedImages.length);
                         windowManager.$element.remove();
                         resolve(confirmedImages.concat(imagesToSubmit));
                         return;
@@ -302,8 +346,6 @@
                     
                     const image = currentItem.image;
                     const previousReview = currentItem.previousReview;
-            
-                    console.log('Processing confirmation for', image.filename, previousReview);
             
                     const timestamp = previousReview.timestamp || '';
                     let formattedDate = 'unknown date';
@@ -361,7 +403,6 @@
                         
                         processNextImage();
                     }).catch(function(error) {
-                        console.error('Dialog error:', error);
                         processNextImage();
                     });
                 }
@@ -387,13 +428,19 @@
                         const hasReviewPermission = mw.config.get('wgUserGroups', []).includes('aspaklarya2');
                         if (!hasReviewPermission) {
                             image.element.parent().addClass('aspaklarya-hidden');
+                            
+                            const $link = image.element.closest('a');
+                            if ($link.length) {
+                                const $wrapper = $('<div class="aspaklarya-disabled-link"></div>');
+                                $wrapper.html($link.html());
+                                $link.replaceWith($wrapper);
+                            }
                         }
 
                         successCount++;
                     }
                     return response;
                 }).catch(function(code, data) {
-                    console.error('Error submitting image:', code, data);
                     errorCount++;
                     if (mw.notify) {
                         if (data && data.exception) {
