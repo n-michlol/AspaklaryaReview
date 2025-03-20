@@ -1,35 +1,34 @@
 (function() {
     'use strict';
 
+    const pendingRequests = {};
+
     function initializeEventListeners() {
-        $(document).on('click', '.aspaklarya-action-remove', function(e) {
+        $(document).on('click', '.aspaklarya-action-remove, .aspaklarya-action-approve, .aspaklarya-action-edited', function(e) {
             e.preventDefault();
-            const id = $(this).data('id') || $(this).closest('[data-id]').attr('data-id');
+            const $button = $(this);
+            const id = $button.data('id') || $button.closest('[data-id]').attr('data-id');
+            
             if (!id) {
-                mw.notify('Error: Cannot find item ID', {type: 'error'});
+                mw.notify(mw.msg('aspaklarya-queue-error-processing') + ': Cannot find item ID', {type: 'error'});
                 return;
             }
-            handleAction(id, 'remove');
-        });
-
-        $(document).on('click', '.aspaklarya-action-approve', function(e) {
-            e.preventDefault();
-            const id = $(this).data('id') || $(this).closest('[data-id]').attr('data-id');
-            if (!id) {
-                mw.notify('Error: Cannot find item ID', {type: 'error'});
+            
+            if (pendingRequests[id]) {
+                console.log('Request already in progress for ID:', id);
                 return;
             }
-            handleAction(id, 'approve');
-        });
-
-        $(document).on('click', '.aspaklarya-action-edited', function(e) {
-            e.preventDefault();
-            const id = $(this).data('id') || $(this).closest('[data-id]').attr('data-id');
-            if (!id) {
-                mw.notify('Error: Cannot find item ID', {type: 'error'});
-                return;
+            
+            let action;
+            if ($button.hasClass('aspaklarya-action-remove')) {
+                action = 'remove';
+            } else if ($button.hasClass('aspaklarya-action-approve')) {
+                action = 'approve';
+            } else if ($button.hasClass('aspaklarya-action-edited')) {
+                action = 'edited';
             }
-            handleAction(id, 'edited');
+            
+            handleAction(id, action);
         });
 
         $(document).on('click', '.aspaklarya-queue-image-link', function(e) {
@@ -51,6 +50,8 @@
         const $item = $(`[data-id="${id}"].aspaklarya-queue-item`);
         $item.addClass('is-loading');
         
+        pendingRequests[id] = true;
+        
         const api = new mw.Api();
         
         const params = {
@@ -69,14 +70,20 @@
             .done(function(response) {
                 console.log('API response:', response);
                 
+                delete pendingRequests[id];
+                
                 if (response.success) {
-                    $item.slideUp(function() {
-                        $item.remove();
-                        if ($('.aspaklarya-queue-item').length === 0) {
-                            $('.aspaklarya-queue-list').html('<div class="aspaklarya-queue-empty">' + 
-                                mw.msg('aspaklarya-queue-empty') + '</div>');
-                        }
-                    });
+                    showActionSuccessMessages(response, action);
+                    
+                    setTimeout(function() {
+                        $item.slideUp(function() {
+                            $item.remove();
+                            if ($('.aspaklarya-queue-item').length === 0) {
+                                $('.aspaklarya-queue-list').html('<div class="aspaklarya-queue-empty">' + 
+                                    mw.msg('aspaklarya-queue-empty') + '</div>');
+                            }
+                        });
+                    }, 3000);
                     
                     if (response.notification) {
                         try {
@@ -90,7 +97,7 @@
                     }
                 } else {
                     $item.removeClass('is-loading');
-                    let errorMsg = 'Error processing request';
+                    let errorMsg = mw.msg('aspaklarya-queue-error-processing');
                     if (response.error && response.error.info) {
                         errorMsg += ': ' + response.error.info;
                     }
@@ -101,8 +108,10 @@
                 console.error('API error code:', code);
                 console.error('API error data:', data);
                 
+                delete pendingRequests[id];
+                
                 $item.removeClass('is-loading');
-                let errorMsg = 'Error processing request';
+                let errorMsg = mw.msg('aspaklarya-queue-error-processing');
                 
                 if (data && data.exception) {
                     errorMsg += ': ' + data.exception;
@@ -114,6 +123,42 @@
                 
                 mw.notify(errorMsg, {type: 'error'});
             });
+    }
+
+    function showActionSuccessMessages(response, action) {
+        if (!$('.aspaklarya-action-messages').length) {
+            $('body').append('<div class="aspaklarya-action-messages"></div>');
+        }
+        
+        if (response.notification) {
+            showMessage(mw.msg('aspaklarya-queue-notification-sent'), 'success');
+        } else {
+            showMessage(mw.msg('aspaklarya-queue-notification-error'), 'error');
+        }
+        
+        if (action === 'remove' && response.pagesModified) {
+            showMessage(mw.msg('aspaklarya-queue-file-blocked'), 'success');
+            
+            if (Array.isArray(response.pagesModified)) {
+                response.pagesModified.forEach(function(page) {
+                    showMessage(mw.msg('aspaklarya-queue-image-removed', page), 'success');
+                });
+            }
+        }
+    }
+
+    function showMessage(message, type) {
+        const $message = $('<div>')
+            .addClass('aspaklarya-message')
+            .addClass('aspaklarya-message-' + type)
+            .text(message)
+            .appendTo('.aspaklarya-action-messages');
+        
+        setTimeout(function() {
+            $message.fadeOut(function() {
+                $message.remove();
+            });
+        }, 5000);
     }
 
     $(function() {

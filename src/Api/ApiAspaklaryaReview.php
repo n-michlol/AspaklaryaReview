@@ -157,7 +157,7 @@ class ApiAspaklaryaReview extends ApiBase {
                         __METHOD__
                     );
                     
-                    $this->removeImage($row->arq_filename);
+                    $pagesModified = $this->removeImage($row->arq_filename);
                     
                     $notificationId = $this->sendNotification(
                         $row->arq_requester,
@@ -167,6 +167,10 @@ class ApiAspaklaryaReview extends ApiBase {
                     
                     if ($notificationId) {
                         $this->getResult()->addValue(null, 'notification', $notificationId);
+                    }
+                    
+                    if (!empty($pagesModified)) {
+                        $this->getResult()->addValue(null, 'pagesModified', $pagesModified);
                     }
                     
                     $this->getResult()->addValue(null, 'success', true);
@@ -327,6 +331,7 @@ class ApiAspaklaryaReview extends ApiBase {
         try {
             $services = MediaWikiServices::getInstance();
             $dbr = $this->loadBalancer->getConnection(DB_REPLICA);
+            $pagesModified = [];
             
             $res = $dbr->select(
                 'imagelinks',
@@ -359,6 +364,8 @@ class ApiAspaklaryaReview extends ApiBase {
                     CommentStoreComment::newUnsavedComment('הסרת תמונה'),
                     EDIT_MINOR | EDIT_FORCE_BOT
                 );
+                
+                $pagesModified[] = $title->getPrefixedText();
             }
             
             $fileTitle = Title::makeTitle(NS_FILE, $filename);
@@ -372,8 +379,11 @@ class ApiAspaklaryaReview extends ApiBase {
                     EDIT_MINOR | EDIT_FORCE_BOT
                 );
             }
+            
+            return $pagesModified;
         } catch (\Exception $e) {
             wfLogWarning('Error removing image: ' . $e->getMessage());
+            return [];
         }
     }
 

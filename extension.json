@@ -124,7 +124,11 @@
                 "aspaklarya-queue-timestamp",
                 "aspaklarya-queue-page",
                 "aspaklarya-queue-error-processing",
-                "aspaklarya-queue-previously-reviewed"
+                "aspaklarya-queue-previously-reviewed",
+                "aspaklarya-queue-notification-sent",
+                "aspaklarya-queue-notification-error",
+                "aspaklarya-queue-file-blocked",
+                "aspaklarya-queue-image-removed"
             ],
             "dependencies": [
                 "mediawiki.api",
