@@ -125,7 +125,7 @@ class ApiAspaklaryaReview extends ApiBase {
                     $this->getResult()->addValue(null, 'success', true);
                     $this->addLogEntry('submit', $user->getId(), (int)$params['pageid'], $params['filename']);
                     break;
-                    
+                                    
                 case 'remove':
                     if (!$user->isAllowed('aspaklarya-review')) {
                         $this->dieWithError('You do not have permission to review images', 'permissiondenied');
@@ -176,7 +176,7 @@ class ApiAspaklaryaReview extends ApiBase {
                     $this->getResult()->addValue(null, 'success', true);
                     $this->addLogEntry('removed', $user->getId(), $row->arq_page_id, $row->arq_filename);
                     break;
-                    
+
                 case 'approve':
                     if (!$user->isAllowed('aspaklarya-review')) {
                         $this->dieWithError('You do not have permission to review images', 'permissiondenied');
@@ -369,16 +369,15 @@ class ApiAspaklaryaReview extends ApiBase {
             }
             
             $fileTitle = Title::makeTitle(NS_FILE, $filename);
-            if ($fileTitle->exists()) {
-                $wikiPageFactory = $services->getWikiPageFactory();
-                $page = $wikiPageFactory->newFromTitle($fileTitle);
-                $updater = $page->newPageUpdater($this->getUser());
-                $updater->setContent(SlotRecord::MAIN, new WikitextContent('#הפניה [[קובץ:תמונה חילופית.jpg]]'));
-                $updater->saveRevision(
-                    CommentStoreComment::newUnsavedComment('חסימת תמונה'),
-                    EDIT_MINOR | EDIT_FORCE_BOT
-                );
-            }
+            $wikiPageFactory = $services->getWikiPageFactory();
+            $filePage = $wikiPageFactory->newFromTitle($fileTitle);
+            
+            $updater = $filePage->newPageUpdater($this->getUser());
+            $updater->setContent(SlotRecord::MAIN, new WikitextContent('#הפניה [[קובץ:תמונה חילופית.jpg]]'));
+            $updater->saveRevision(
+                CommentStoreComment::newUnsavedComment('חסימת תמונה'),
+                EDIT_MINOR | EDIT_FORCE_BOT
+            );
             
             return $pagesModified;
         } catch (\Exception $e) {
