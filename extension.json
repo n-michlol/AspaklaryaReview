@@ -6,7 +6,7 @@
     ],
     "url": "https://github.com/n-michlol/AspaklaryaReview",
     "descriptionmsg": "aspaklaryareview-desc",
-    "license-name": "GPL-3.0-or-later",
+    "license-name": "MIT",
     "type": "specialpage",
     "requires": {
         "MediaWiki": ">= 1.39.0",
