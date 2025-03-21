@@ -387,20 +387,73 @@ class ApiAspaklaryaReview extends ApiBase {
     }
 
     private function removeImageFromText($text, $filename) {
-        $filename = preg_quote($filename, '/');
-        $filename = str_replace('\\s', '[_\\s]', $filename);
+        $normalizedFilename = $this->normalizeFilename($filename);
         
-        $text = preg_replace(
-            '/<gallery([^>]*)>\s*' . $filename . '\s*(\|[^\n]*\n|\n)/is',
-            '<gallery$1>',
-            $text
-        );
+        $text = $this->processGalleries($text, $normalizedFilename);
         
-        $text = preg_replace('/<gallery[^>]*>\s*<\/gallery>/is', '', $text);
+        $text = $this->processTemplates($text, $normalizedFilename);
         
+        $text = $this->processDirectImageLinks($text, $normalizedFilename);
+        
+        return $text;
+    }
+    
+    private function normalizeFilename($filename) {
+        $normalized = preg_quote($filename, '/');
+        $normalized = str_replace(' ', '[_\\s]', $normalized);
+        $normalized = preg_replace('/\\\\([()])/','\\\\$1', $normalized);
+        return $normalized;
+    }
+    
+    private function processGalleries($text, $normalizedFilename) {
+        if (preg_match_all('/<gallery([^>]*)>(.*?)<\/gallery>/s', $text, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $galleryParams = $match[1];
+                $galleryContent = $match[2];
+                
+                $pattern = '/^' . $normalizedFilename . '(\|.*)?$/im';
+                $newGalleryContent = preg_replace($pattern, '', $galleryContent);
+                
+                $newGalleryContent = preg_replace('/\n\n+/', "\n", $newGalleryContent);
+                $newGalleryContent = trim($newGalleryContent);
+                
+                if (empty($newGalleryContent)) {
+                    $text = str_replace($match[0], '', $text);
+                } else {
+                    $newGallery = "<gallery{$galleryParams}>\n{$newGalleryContent}\n</gallery>";
+                    $text = str_replace($match[0], $newGallery, $text);
+                }
+            }
+        }
+        
+        return $text;
+    }
+    
+    private function processTemplates($text, $normalizedFilename) {
+        if (preg_match_all('/\{\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}\}/s', $text, $matches)) {
+            foreach ($matches[0] as $template) {
+                if (preg_match('/\|\s*תמונה\s*=/i', $template)) {
+                    $pattern = '/(\|\s*תמונה\s*=\s*)(קובץ:|file:|image:|תמונה:|File:|Image:)?(' . $normalizedFilename . ')([^|}\n]*)/i';
+                    
+                    $replacedTemplate = preg_replace($pattern, '$1', $template);
+                    
+                    if ($replacedTemplate !== $template) {
+                        $text = str_replace($template, $replacedTemplate, $text);
+                    }
+                }
+            }
+        }
+        
+        return $text;
+    }
+    
+    private function processDirectImageLinks($text, $normalizedFilename) {
         $patterns = [
-            '/\[\[\s*:?\s*(Image|image|תמונה|קו|קובץ|file|File)\s*:\s*' . $filename . '[^\[\]]*\]\]/i',
-            '/\[\[(Image|image|תמונה|קו|קובץ|file|File)\s*:\s*' . $filename . '\s*\|.*?\]\]/i'
+            '/\[\[\s*:?\s*(Image|image|תמונה|קו|קובץ|file|File)\s*:\s*' . $normalizedFilename . '[^\[\]]*\]\]/i',
+            
+            '/\[\[(Image|image|תמונה|קו|קובץ|file|File)\s*:\s*' . $normalizedFilename . '\s*\|.*?\]\]/i',
+            
+            '/(Image|image|תמונה|קו|קובץ|file|File)\s*:\s*' . $normalizedFilename . '\s*\|[^]|}\n]*/i'
         ];
         
         foreach ($patterns as $pattern) {
