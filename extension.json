@@ -166,9 +166,6 @@
             "aspaklarya-review": true,
             "aspaklarya-review-log": true
         },
-        "עורך_אספקלריה": {
-            "aspaklarya-review-log": true
-        },
         "sysop": {
             "aspaklarya-review-log": true
         }
