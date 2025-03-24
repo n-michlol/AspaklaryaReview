@@ -375,7 +375,7 @@
                                 image.filename, 
                                 statusMsg, 
                                 formattedDate
-                            ) + ' ' + mw.msg('aspaklarya-review-by-reviewer', reviewer)
+                            )
                         )
                     );
                     
