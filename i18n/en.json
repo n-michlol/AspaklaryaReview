@@ -18,7 +18,7 @@
     "aspaklarya-queue-image-removed": "Image successfully removed from article $1!",
     "aspaklarya-queue-notification-error": "Error sending notification to user, please update them manually.",
     "aspaklarya-queue-notification-sent": "Notification sent to user!",
-    "aspaklarya-queue-page": "Appears on page: $1",
+    "aspaklarya-queue-page": "Appears on page: [[$1]]",
     "aspaklarya-queue-previously-reviewed": "This image was previously reviewed on $2 by [[User:$3|$3]] and was marked as \"$1\".",
     "aspaklarya-queue-remove": "Remove Image",
     "aspaklarya-queue-requested-by": "Submitted by: [[User:$1|$1]]",
