@@ -19,7 +19,7 @@ class AspaklaryaLogFormatter extends LogFormatter {
                 $params[4] = $filename;
             } else {
                 $title = \Title::makeTitle(NS_FILE, $filename);
-                $params[4] = \Message::rawParam(Linker::link($title));
+                $params[4] = \Message::rawParam(Linker::link($title, htmlspecialchars($filename)));
             }
         }
         
@@ -30,6 +30,6 @@ class AspaklaryaLogFormatter extends LogFormatter {
         $action = $this->entry->getSubtype();
         $params = $this->getMessageParameters();
         
-        return $this->msg("logentry-aspaklaryareview-$action", $params)->text();
+        return $this->msg("logentry-aspaklaryareview-$action", $params)->parse();
     }
 }
