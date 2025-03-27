@@ -182,9 +182,8 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             $this->msg('aspaklarya-queue-timestamp', $formattedDate)->text());
         
         if ($title) {
-            $html .= Html::element('div', ['class' => 'aspaklarya-queue-info'], 
-                $this->msg('aspaklarya-queue-page', $title->getPrefixedText())->text()
-            );
+            $html .= Html::rawElement('div', ['class' => 'aspaklarya-queue-info'], 
+                $this->msg('aspaklarya-queue-page', $title->getPrefixedText())->parse());
         }
         
         $html .= '<div class="aspaklarya-queue-actions">';

@@ -18,7 +18,7 @@
     "aspaklarya-queue-image-removed": "התמונה הוסרה בהצלחה מהערך $1!",
     "aspaklarya-queue-notification-error": "שגיאה בשליחת ההודעה למשתמש, יש לעדכנו ידנית.",
     "aspaklarya-queue-notification-sent": "נשלחה הודעה למשתמש!",
-    "aspaklarya-queue-page": "מופיע בדף: $1",
+    "aspaklarya-queue-page": "מופיע בדף: [[$1]]",
     "aspaklarya-queue-previously-reviewed": "תמונה זו נבדקה בעבר על ידי [[User:$3|$3]], בתאריך $2. התמונה הוגדרה כ\"$1\".",
     "aspaklarya-queue-remove": "הסר תמונה",
     "aspaklarya-queue-requested-by": "נשלח על ידי: [[User:$1|$1]]",
