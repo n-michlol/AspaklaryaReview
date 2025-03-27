@@ -11,6 +11,7 @@ use OOUI;
 use Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Pager\ReverseChronologicalPager;
+use MediaWiki\Linker\Linker;
 
 class AspaklaryaQueuePager extends ReverseChronologicalPager {
     private $userFactory;
@@ -89,8 +90,8 @@ class SpecialAspaklaryaQueue extends SpecialPage {
 
         $out->enableOOUI();
         $out->addModules(['ext.aspaklaryaQueue', 'oojs-ui-core', 'oojs-ui-widgets']);
-        $out->setPageTitle($this->msg('aspaklarya-queue-title')->text());
-        
+        $out->setPageTitle($this->msg('aspaklarya-queue-title'));
+
         try {
             $pager = new AspaklaryaQueuePager($this->getContext(), $this->loadBalancer, $this->userFactory);
             $pager->setParent($this);
@@ -135,13 +136,11 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             $reviewerName = $reviewer ? $reviewer->getName() : '(unknown)';
             $language = $this->getLanguage();
             $formattedReviewDate = $language->userTimeAndDate($previousReview->arq_review_timestamp, $this->getUser());
-            
-            $statusMsg = $this->msg('aspaklarya-status-' . $previousReview->arq_status)->text();
         
             $html .= Html::rawElement('div', [
                 'class' => 'aspaklarya-queue-previous-review aspaklarya-status-' . $previousReview->arq_status
             ], $this->msg('aspaklarya-queue-previously-reviewed', 
-                $statusMsg, 
+                $previousReview->arq_status, 
                 $formattedReviewDate, 
                 $reviewerName
             )->parse());
@@ -155,13 +154,10 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             if ($file) {
                 $thumb = $file->transform(['width' => 300]);
                 if ($thumb) {
-                    $filePageUrl = $fileTitle->getLocalURL();
                     $fileUrl = $file->getUrl();
-                    
                     $html .= Html::openElement('a', [
-                        'href' => $filePageUrl,
-                        'class' => 'aspaklarya-queue-image-link',
-                        'data-file-url' => $fileUrl
+                        'href' => $fileUrl,
+                        'class' => 'aspaklarya-queue-image-link'
                     ]);
                     $html .= $thumb->toHtml(['class' => 'aspaklarya-queue-image']);
                     $html .= Html::closeElement('a');
@@ -172,9 +168,11 @@ class SpecialAspaklaryaQueue extends SpecialPage {
             }
         }
         
-        $html .= Html::element('h3', [], $filename);
-        $html .= Html::element('div', ['class' => 'aspaklarya-queue-info'], 
-            $this->msg('aspaklarya-queue-requested-by', $requester)->text());
+        $fileLink = Linker::link($fileTitle, htmlspecialchars($filename));
+        $html .= Html::rawElement('h3', [], $fileLink);
+
+        $html .= Html::rawElement('div', ['class' => 'aspaklarya-queue-info'], 
+            $this->msg('aspaklarya-queue-requested-by', $requester)->parse());
         
         $language = $this->getLanguage();
         $user = $this->getUser();

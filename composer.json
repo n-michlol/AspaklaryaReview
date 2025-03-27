@@ -2,7 +2,7 @@
 	"name": "mediawiki/aspaklarya-review",
 	"type": "mediawiki-extension",
 	"description": "MediaWiki extension for reviewing images for Hamichlol",
-	"license": "GPL-3.0-or-later",
+	"license": "MIT",
 	"authors": [
 		{
 			"name": "Neriah"
