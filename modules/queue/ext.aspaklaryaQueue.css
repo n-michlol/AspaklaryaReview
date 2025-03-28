@@ -116,3 +116,47 @@
     border-left: 4px solid #d9534f;
     color: #a94442;
 }
+
+.aspaklarya-queue-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1em 0;
+    border-top: 1px solid #ddd;
+    margin-top: 1em;
+}
+
+.aspaklarya-queue-nav-controls {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+}
+
+.aspaklarya-queue-nav-range {
+    font-weight: bold;
+    color: #333;
+}
+
+.aspaklarya-queue-nav-options {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.aspaklarya-queue-nav-form {
+    display: flex;
+    gap: 0.5em;
+}
+
+.aspaklarya-queue-nav-limit {
+    min-width: 100px;
+}
+
+.oo-ui-buttonElement.oo-ui-iconElement .oo-ui-labelElement {
+    display: flex;
+    align-items: center;
+}
+
+.oo-ui-buttonElement.oo-ui-iconElement.oo-ui-labelElement .oo-ui-iconElement {
+    margin-right: 0.5em;
+}

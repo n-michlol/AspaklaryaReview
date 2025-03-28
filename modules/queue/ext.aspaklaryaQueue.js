@@ -43,6 +43,17 @@
             window.open(fileUrl, '_blank');
             return false;
         });
+
+        $(document).on('click', '#aspaklarya-queue-nav-go', function(e) {
+            e.preventDefault();
+            const $form = $('#aspaklarya-queue-nav-form');
+            if ($form.length) {
+                $form[0].submit();
+            } else {
+                console.error('Navigation form not found');
+                mw.notify('Error: Could not submit navigation form', {type: 'error'});
+            }
+        });
     }
 
     function handleAction(id, action) {
