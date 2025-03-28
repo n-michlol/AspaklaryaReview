@@ -3,15 +3,13 @@
 namespace MediaWiki\Extension\AspaklaryaReview;
 
 use SpecialPage;
-use HTMLForm;
-use MediaWiki\User\UserFactory;
-use Wikimedia\Rdbms\ILoadBalancer;
-use Status;
-use OOUI;
 use Html;
+use OOUI;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Pager\ReverseChronologicalPager;
 use MediaWiki\Linker\Linker;
+use MediaWiki\User\UserFactory;
+use Wikimedia\Rdbms\ILoadBalancer;
 
 class AspaklaryaQueuePager extends ReverseChronologicalPager {
     private $userFactory;
@@ -89,23 +87,102 @@ class SpecialAspaklaryaQueue extends SpecialPage {
         $request = $this->getRequest();
 
         $out->enableOOUI();
-        $out->addModules(['ext.aspaklaryaQueue', 'oojs-ui-core', 'oojs-ui-widgets']);
+        $out->addModules(['ext.aspaklaryaQueue', 'oojs-ui-core', 'oojs-ui-widgets', 'oojs-ui-windows']);
         $out->setPageTitle($this->msg('aspaklarya-queue-title'));
 
         try {
             $pager = new AspaklaryaQueuePager($this->getContext(), $this->loadBalancer, $this->userFactory);
             $pager->setParent($this);
-            $pager->setLimit(20); 
             
-            if ($pager->getNumRows() > 0) {
-                $out->addHTML(Html::rawElement('div', ['class' => 'aspaklarya-queue-list'], $pager->getBody()));
-                $out->addHTML($pager->getNavigationBar());
-            } else {
-                $out->addWikiMsg('aspaklarya-queue-empty');
-            }
+            $limit = $request->getInt('limit', 20);
+            $pager->setLimit($limit);
+
+            $out->addHTML(Html::rawElement('div', ['class' => 'aspaklarya-queue-list'], $pager->getBody()));
+            
+            $out->addHTML($this->getCustomNavigationBar($pager));
         } catch (\Exception $e) {
             $out->addHTML(Html::errorBox('Error loading review queue: ' . $e->getMessage()));
         }
+    }
+
+    private function getCustomNavigationBar($pager) {
+        $request = $this->getRequest();
+        $limit = $pager->getLimit();
+        $offset = $request->getInt('offset', 0);
+        $numRows = $pager->getNumRows();
+
+        $start = $offset + 1;
+        $end = min($offset + $limit, $numRows);
+        $rangeText = $this->msg('aspaklarya-queue-nav-range', $start, $end, $numRows)->text();
+
+        $prevOffset = max($offset - $limit, 0);
+        $nextOffset = $offset + $limit;
+
+        $prevDisabled = $offset <= 0;
+        $nextDisabled = $nextOffset >= $numRows;
+
+        $prevButton = new OOUI\ButtonWidget([
+            'label' => $this->msg('aspaklarya-queue-nav-prev')->text(),
+            'href' => $this->getPageTitle()->getLocalURL(['offset' => $prevOffset, 'limit' => $limit]),
+            'disabled' => $prevDisabled,
+            'icon' => 'previous',
+            'flags' => ['progressive']
+        ]);
+
+        $nextButton = new OOUI\ButtonWidget([
+            'label' => $this->msg('aspaklarya-queue-nav-next')->text(),
+            'href' => $this->getPageTitle()->getLocalURL(['offset' => $nextOffset, 'limit' => $limit]),
+            'disabled' => $nextDisabled,
+            'icon' => 'next',
+            'flags' => ['progressive']
+        ]);
+
+        $limitOptions = [10, 20, 25, 50, 100, 250, 500];
+        $dropdownOptions = [];
+        foreach ($limitOptions as $option) {
+            $dropdownOptions[] = [
+                'data' => $option,
+                'label' => $this->msg('aspaklarya-queue-nav-per-page', $option)->text()
+            ];
+        }
+
+        $limitDropdown = new OOUI\DropdownInputWidget([
+            'name' => 'limit',
+            'options' => $dropdownOptions,
+            'value' => $limit,
+            'classes' => ['aspaklarya-queue-nav-limit']
+        ]);
+
+        $goButton = new OOUI\ButtonWidget([
+            'id' => 'aspaklarya-queue-nav-go',
+            'label' => $this->msg('aspaklarya-queue-nav-go')->text(),
+            'flags' => ['primary', 'progressive'],
+            'type' => 'submit'
+        ]);
+
+        $form = new OOUI\FormLayout([
+            'id' => 'aspaklarya-queue-nav-form',
+            'method' => 'get',
+            'action' => $this->getPageTitle()->getLocalURL(),
+            'items' => [
+                $limitDropdown,
+                $goButton
+            ],
+            'classes' => ['aspaklarya-queue-nav-form']
+        ]);
+
+        $navHtml = Html::openElement('div', ['class' => 'aspaklarya-queue-navigation']);
+        $navHtml .= Html::openElement('div', ['class' => 'aspaklarya-queue-nav-controls']);
+        $navHtml .= $prevButton->toString();
+        $navHtml .= Html::element('span', ['class' => 'aspaklarya-queue-nav-range'], $rangeText);
+        $navHtml .= $nextButton->toString();
+        $navHtml .= Html::closeElement('div');
+        $navHtml .= Html::openElement('div', ['class' => 'aspaklarya-queue-nav-options']);
+        $navHtml .= $form->toString();
+        $navHtml .= Html::closeElement('div');
+        $navHtml .= Html::closeElement('div');
+
+        return $navHtml;
     }
 
     public function formatQueueItem($id, $filename, $requester, $timestamp, $pageId) {

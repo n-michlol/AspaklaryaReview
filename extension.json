@@ -128,12 +128,18 @@
                 "aspaklarya-queue-notification-sent",
                 "aspaklarya-queue-notification-error",
                 "aspaklarya-queue-file-blocked",
-                "aspaklarya-queue-image-removed"
+                "aspaklarya-queue-image-removed",
+                "aspaklarya-queue-nav-prev",
+                "aspaklarya-queue-nav-next",
+                "aspaklarya-queue-nav-range",
+                "aspaklarya-queue-nav-per-page",
+                "aspaklarya-queue-nav-go"
             ],
             "dependencies": [
                 "mediawiki.api",
                 "oojs-ui-core",
                 "oojs-ui-widgets",
+                "oojs-ui-windows",
                 "mediawiki.util",
                 "jquery",
                 "mmv.bootstrap"
