@@ -465,17 +465,15 @@ class ApiAspaklaryaReview extends ApiBase {
     }
     
     private function processDirectImageLinks($text, $normalizedFilename) {
-        $patterns = [
-            '/\[\[\s*:?\s*(Image|image|תמונה|קו|קובץ|file|File)\s*:\s*' . $normalizedFilename . '[^\[\]]*\]\]/i',
-            
-            '/\[\[(Image|image|תמונה|קו|קובץ|file|File)\s*:\s*' . $normalizedFilename . '\s*\|.*?\]\]/i',
-            
-            '/(Image|image|תמונה|קו|קובץ|file|File)\s*:\s*' . $normalizedFilename . '\s*\|[^]|}\n]*/i'
-        ];
+        $pattern1 = '/(\[\[\s*:?)?(Image|image|תמונה|קו|קובץ|file|File)(\s*:?\s*)' . $normalizedFilename . '([^\[\]]*|\[[^\[\]]*\]|\[\[[^\[\]]*\]\])*(\]\]|\n)/i';
         
-        foreach ($patterns as $pattern) {
-            $text = preg_replace($pattern, '', $text);
-        }
+        $pattern2 = '/\[\[(Image|image|תמונה|קו|קובץ|file|File)\s*:\s*' . $normalizedFilename . '\s*(\|[^\]]*?)?\]\]/i';
+        
+        $pattern3 = '/(Image|image|תמונה|קו|קובץ|file|File)\s*:\s*' . $normalizedFilename . '\s*(\|[^]|}\n]*)?/i';
+        
+        $text = preg_replace($pattern1, '', $text);
+        $text = preg_replace($pattern2, '', $text);
+        $text = preg_replace($pattern3, '', $text);
         
         return $text;
     }
