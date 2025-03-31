@@ -13,6 +13,7 @@ use MediaWiki\MediaWikiServices;
 use Wikimedia\ParamValidator\ParamValidator;
 use ExtensionRegistry;
 use ManualLogEntry;
+use RecentChange;
 
 class ApiAspaklaryaReview extends ApiBase {
     private $loadBalancer;
@@ -332,6 +333,8 @@ class ApiAspaklaryaReview extends ApiBase {
             $services = MediaWikiServices::getInstance();
             $dbr = $this->loadBalancer->getConnection(DB_REPLICA);
             $pagesModified = [];
+            $user = $this->getUser();
+            $canAutopatrol = $user->isAllowed('autopatrol');
             
             $res = $dbr->select(
                 'imagelinks',
@@ -358,8 +361,15 @@ class ApiAspaklaryaReview extends ApiBase {
                 
                 $text = $this->removeImageFromText($text, $filename);
                 
-                $updater = $page->newPageUpdater($this->getUser());
-                $updater->setContent(SlotRecord::MAIN, new WikitextContent($text)); 
+                $updater = $page->newPageUpdater($user);
+                $updater->setContent(SlotRecord::MAIN, new WikitextContent($text));
+                
+                if ($canAutopatrol) {
+                    $updater->setRcPatrolStatus(RecentChange::PRC_AUTOPATROLLED);
+                } else {
+                    $updater->setRcPatrolStatus(RecentChange::PRC_PATROLLED);
+                }
+                
                 $updater->saveRevision(
                     CommentStoreComment::newUnsavedComment('הסרת תמונה'),
                     EDIT_MINOR | EDIT_FORCE_BOT
@@ -372,8 +382,15 @@ class ApiAspaklaryaReview extends ApiBase {
             $wikiPageFactory = $services->getWikiPageFactory();
             $filePage = $wikiPageFactory->newFromTitle($fileTitle);
             
-            $updater = $filePage->newPageUpdater($this->getUser());
+            $updater = $filePage->newPageUpdater($user);
             $updater->setContent(SlotRecord::MAIN, new WikitextContent('#הפניה [[קובץ:תמונה חילופית.jpg]]'));
+            
+            if ($canAutopatrol) {
+                $updater->setRcPatrolStatus(RecentChange::PRC_AUTOPATROLLED);
+            } else {
+                $updater->setRcPatrolStatus(RecentChange::PRC_PATROLLED);
+            }
+            
             $updater->saveRevision(
                 CommentStoreComment::newUnsavedComment('חסימת תמונה'),
                 EDIT_MINOR | EDIT_FORCE_BOT
