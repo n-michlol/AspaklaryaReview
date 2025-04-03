@@ -9,10 +9,12 @@ AspaklaryaReview allows users to submit images for review by "Mehashrei Tmunot".
 ## Features
 
 - Image submission for review from any wiki page
-- Special page for reviewing submitted images
-- Notifications for image review decisions
-- Permission-based access control
+- Special page (Special:AspaklaryaQueue) for reviewing submitted images
+- Notifications for review decisions (approved, removed, edited)
+- Permission-based access control with logging
 - Support for Hebrew and English interfaces
+- Automatic image removal from articles and file page redirection
+- Previous review status display and re-review confirmation
 
 ## Requirements
 
@@ -58,6 +60,5 @@ php maintenance/update.php
 
 The extension defines the following permission:
 
-- `aspaklarya-review`: Allows users to review and make decisions on submitted images
-
-By default, this permission is granted to the 'aspaklarya2' user group.
+- `aspaklarya-review`: Allows reviewing and acting on queued images (default: 'aspaklarya2' group)
+- `aspaklarya-review-log`: Allows viewing the Aspaklarya review log (default: 'aspaklarya2' and 'sysop' groups)
