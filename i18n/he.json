@@ -63,5 +63,7 @@
     "logentry-aspaklaryareview-submit": "$1 {{GENDER:$2|שלח|שלחה}} את התמונה [[:File:$4|$4]] לבדיקה",
     "notification-link-text-view-file": "צפייה בקובץ",
     "right-aspaklarya-review": "בדיקת תמונות",
-    "right-aspaklarya-review-log": "צפייה ביומן בדיקת תמונות"
+    "right-aspaklarya-review-log": "צפייה ביומן בדיקת תמונות",
+    "version-aspaklarya": "אספקלריה",
+    "version-aspaklarya-desc": "הרחבות הקשורות לאספקלריה (המכלול)"
 }

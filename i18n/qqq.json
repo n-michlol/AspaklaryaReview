@@ -63,5 +63,7 @@
     "logentry-aspaklaryareview-submit": "Log entry message displayed when a user submits an image for review.\n\nParameters:\n* $1 - Link to the user\n* $2 - Username (for gender handling)\n* $4 - Link to the image.",
     "notification-link-text-view-file": "Label for the link in notifications to view the file in question.",
     "right-aspaklarya-review": "Description of the user right required to review images in the queue.",
-    "right-aspaklarya-review-log": "Description of the user right required to view the Aspaklarya image review log."
+    "right-aspaklarya-review-log": "Description of the user right required to view the Aspaklarya image review log.",
+    "version-aspaklarya": "The name of the Aspaklarya extension type as shown in Special:Version",
+    "version-aspaklarya-desc": "Description of the Aspaklarya extension type in Special:Version"
 }
