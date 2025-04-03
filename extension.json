@@ -1,13 +1,13 @@
 {
     "name": "AspaklaryaReview",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "author": [
-        "Neriah"
+        "[https://www.hamichlol.org.il/משתמש:נריה נריה]"
     ],
     "url": "https://github.com/n-michlol/AspaklaryaReview",
     "descriptionmsg": "aspaklaryareview-desc",
     "license-name": "MIT",
-    "type": "specialpage",
+    "type": "aspaklarya",
     "requires": {
         "MediaWiki": ">= 1.39.0",
         "extensions": {
@@ -165,7 +165,8 @@
     "Hooks": {
         "BeforePageDisplay": "main",
         "LoadExtensionSchemaUpdates": "MediaWiki\\Extension\\AspaklaryaReview\\Hooks::onLoadExtensionSchemaUpdates",
-        "BeforeCreateEchoEvent": "notifications"
+        "BeforeCreateEchoEvent": "notifications",
+        "ExtensionTypes": "MediaWiki\\Extension\\AspaklaryaReview\\Hooks::onExtensionTypes"
     },
     "GroupPermissions": {
         "aspaklarya2": {

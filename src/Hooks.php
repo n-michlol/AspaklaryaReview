@@ -41,4 +41,8 @@ class Hooks implements BeforePageDisplayHook {
             __DIR__ . '/../sql/tables-generated.sql'
         );
     }
+
+    public static function onExtensionTypes( array &$extTypes ) {
+        $extTypes['aspaklarya'] = wfMessage( 'version-aspaklarya' )->text();
+    }
 }

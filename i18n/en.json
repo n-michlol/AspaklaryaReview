@@ -63,5 +63,7 @@
     "logentry-aspaklaryareview-submit": "$1 {{GENDER:$2|submitted}} image [[:File:$4|$4]] for review",
     "notification-link-text-view-file": "View file",
     "right-aspaklarya-review": "Image Review",
-    "right-aspaklarya-review-log": "View the Aspaklarya image review log"
+    "right-aspaklarya-review-log": "View the Aspaklarya image review log", 
+    "version-aspaklarya": "Aspaklarya",
+    "version-aspaklarya-desc": "Extensions related to Aspaklarya (Hamichlol)"
 }
