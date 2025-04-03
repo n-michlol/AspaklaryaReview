@@ -450,9 +450,11 @@ class ApiAspaklaryaReview extends ApiBase {
         if (preg_match_all('/\{\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}\}/s', $text, $matches)) {
             foreach ($matches[0] as $template) {
                 if (preg_match('/\|\s*תמונה\s*=/i', $template)) {
-                    $pattern = '/(\|\s*תמונה\s*=\s*)(קובץ:|file:|image:|תמונה:|File:|Image:)?(' . $normalizedFilename . ')([^|}\n]*)/i';
+                    $pattern = '/\|\s*תמונה\s*=\s*(קובץ:|file:|image:|תמונה:|File:|Image:)?'
+                             . $normalizedFilename
+                             . '[^|}\n]*(\n|\r\n)?/i';
                     
-                    $replacedTemplate = preg_replace($pattern, '$1', $template);
+                    $replacedTemplate = preg_replace($pattern, '', $template);
                     
                     if ($replacedTemplate !== $template) {
                         $text = str_replace($template, $replacedTemplate, $text);
