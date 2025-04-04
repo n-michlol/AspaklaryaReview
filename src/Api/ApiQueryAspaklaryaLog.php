@@ -31,8 +31,8 @@ class ApiQueryAspaklaryaLog extends ApiQueryBase {
             'log_type' => 'aspaklaryareview'
         ];
         
-        if (isset($params['action']) && $params['action'] !== 'all') {
-            $conds['log_action'] = $params['action'];
+        if (isset($params['aslaction']) && $params['aslaction'] !== 'all') {
+            $conds['log_action'] = $params['aslaction'];
         }
         
         if (isset($params['user']) && $params['user'] !== '') {
@@ -95,7 +95,7 @@ class ApiQueryAspaklaryaLog extends ApiQueryBase {
 
     public function getAllowedParams() {
         return [
-            'action' => [
+            'aslaction' => [
                 ParamValidator::PARAM_TYPE => ['all', 'submit', 'approved', 'removed', 'edited'],
                 ParamValidator::PARAM_DEFAULT => 'all'
             ],
@@ -110,9 +110,9 @@ class ApiQueryAspaklaryaLog extends ApiQueryBase {
             'limit' => [
                 ParamValidator::PARAM_TYPE => 'limit',
                 ParamValidator::PARAM_DEFAULT => 50,
-                ParamValidator::PARAM_MIN => 1,
-                ParamValidator::PARAM_MAX => 500,
-                ParamValidator::PARAM_MAX2 => 5000
+                'min' => 1,
+                'max' => 500,
+                'apiMaxLimit' => 5000
             ]
         ];
     }
