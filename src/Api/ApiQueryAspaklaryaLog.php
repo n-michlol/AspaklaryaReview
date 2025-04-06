@@ -45,7 +45,8 @@ class ApiQueryAspaklaryaLog extends ApiQueryBase {
         }
         
         if (isset($params['filename']) && $params['filename'] !== '') {
-            $conds[] = 'log_params ' . $db->buildLike($db->anyString(), '"filename":"' . $params['filename'] . '"', $db->anyString());
+            $filenamePattern = $db->addQuotes('%' . $db->strencode($params['filename']) . '%');
+            $conds[] = 'log_params LIKE ' . $filenamePattern;
         }
 
         $limit = $params['limit'];
@@ -78,7 +79,14 @@ class ApiQueryAspaklaryaLog extends ApiQueryBase {
                 'action' => $row->log_action
             ];
             
-            $params = @json_decode($row->log_params, true);
+            $params = [];
+            if (!empty($row->log_params)) {
+                $params = @json_decode($row->log_params, true);
+                if (!is_array($params)) {
+                    $params = [];
+                }
+            }
+            
             if (is_array($params) && isset($params['filename'])) {
                 $entry['filename'] = $params['filename'];
             }
@@ -123,7 +131,7 @@ class ApiQueryAspaklaryaLog extends ApiQueryBase {
                 => 'apihelp-query+aspaklaryalog-example-simple',
             'action=query&list=aspaklaryalog&aslaction=approved'
                 => 'apihelp-query+aspaklaryalog-example-byaction',
-            'action=query&list=aspaklaryalog&asluser=Example'
+            'action=query&list=aspaklaryalog&user=Example'
                 => 'apihelp-query+aspaklaryalog-example-byuser'
         ];
     }
