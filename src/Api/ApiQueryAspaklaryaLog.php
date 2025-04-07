@@ -135,4 +135,8 @@ class ApiQueryAspaklaryaLog extends ApiQueryBase {
                 => 'apihelp-query+aspaklaryalog-example-byuser'
         ];
     }
+
+    public function getHelpUrls() {
+        return 'https://www.hamichlol.org.il/wiki/המכלול:הרחבת_בדיקת_תמונות/API#action=query&list=aspaklaryalog';
+    }
 }

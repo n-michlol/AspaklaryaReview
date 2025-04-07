@@ -72,4 +72,8 @@ class ApiQueryAspaklaryaReview extends ApiQueryBase {
                 => 'apihelp-query+aspaklaryareview-example-pageid'
         ];
     }
+
+    public function getHelpUrls() {
+        return 'https://www.hamichlol.org.il/wiki/המכלול:הרחבת_בדיקת_תמונות/API#action=query&list=aspaklaryareview';
+    }
 }

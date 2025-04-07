@@ -546,4 +546,8 @@ class ApiAspaklaryaReview extends ApiBase {
             return false;
         }
     }
+
+    public function getHelpUrls() {
+        return 'https://www.hamichlol.org.il/wiki/המכלול:הרחבת_בדיקת_תמונות/API#action=aspaklaryareview';
+    }
 }
