@@ -31,12 +31,12 @@ class ApiQueryAspaklaryaLog extends ApiQueryBase {
             'log_type' => 'aspaklaryareview'
         ];
         
-        if (isset($params['aslaction']) && $params['aslaction'] !== 'all') {
-            $conds['log_action'] = $params['aslaction'];
+        if (isset($params['arl_action']) && $params['arl_action'] !== 'all') {
+            $conds['log_action'] = $params['arl_action'];
         }
         
-        if (isset($params['user']) && $params['user'] !== '') {
-            $user = $this->userFactory->newFromName($params['user']);
+        if (isset($params['arl_user']) && $params['arl_user'] !== '') {
+            $user = $this->userFactory->newFromName($params['arl_user']);
             if ($user && $user->getId()) {
                 $conds['log_user'] = $user->getId();
             } else {
@@ -44,12 +44,12 @@ class ApiQueryAspaklaryaLog extends ApiQueryBase {
             }
         }
         
-        if (isset($params['filename']) && $params['filename'] !== '') {
-            $filenamePattern = $db->addQuotes('%' . $db->strencode($params['filename']) . '%');
+        if (isset($params['arl_filename']) && $params['arl_filename'] !== '') {
+            $filenamePattern = $db->addQuotes('%' . $db->strencode($params['arl_filename']) . '%');
             $conds[] = 'log_params LIKE ' . $filenamePattern;
         }
 
-        $limit = $params['limit'];
+        $limit = $params['arl_limit'];
         $this->addTables('logging');
         $this->addFields([
             'log_id',
@@ -103,19 +103,19 @@ class ApiQueryAspaklaryaLog extends ApiQueryBase {
 
     public function getAllowedParams() {
         return [
-            'aslaction' => [
+            'arl_action' => [
                 ParamValidator::PARAM_TYPE => ['all', 'submit', 'approved', 'removed', 'edited'],
                 ParamValidator::PARAM_DEFAULT => 'all'
             ],
-            'user' => [
+            'arl_user' => [
                 ParamValidator::PARAM_TYPE => 'string',
                 ParamValidator::PARAM_REQUIRED => false
             ],
-            'filename' => [
+            'arl_filename' => [
                 ParamValidator::PARAM_TYPE => 'string',
                 ParamValidator::PARAM_REQUIRED => false
             ],
-            'limit' => [
+            'arl_limit' => [
                 ParamValidator::PARAM_TYPE => 'limit',
                 ParamValidator::PARAM_DEFAULT => 50,
                 'min' => 1,
@@ -129,9 +129,9 @@ class ApiQueryAspaklaryaLog extends ApiQueryBase {
         return [
             'action=query&list=aspaklaryalog'
                 => 'apihelp-query+aspaklaryalog-example-simple',
-            'action=query&list=aspaklaryalog&aslaction=approved'
+            'action=query&list=aspaklaryalog&arl_action=approved'
                 => 'apihelp-query+aspaklaryalog-example-byaction',
-            'action=query&list=aspaklaryalog&user=Example'
+            'action=query&list=aspaklaryalog&arl_user=Example'
                 => 'apihelp-query+aspaklaryalog-example-byuser'
         ];
     }
