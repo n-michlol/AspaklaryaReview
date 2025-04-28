@@ -450,11 +450,9 @@ class ApiAspaklaryaReview extends ApiBase {
         if (preg_match_all('/\{\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}\}/s', $text, $matches)) {
             foreach ($matches[0] as $template) {
                 if (preg_match('/\|\s*תמונה\s*=/i', $template)) {
-                    $pattern = '/\|\s*תמונה\s*=\s*(קובץ:|file:|image:|תמונה:|File:|Image:|קו:)?'
-                             . $normalizedFilename
-                             . '[^|}\n]*(\n|\r\n)?/i';
+                    $pattern = '/(\|\s*תמונה\s*=\s*)(קובץ:|file:|image:|תמונה:|File:|Image:)?(' . $normalizedFilename . ')([^|}\n]*)/i';
                     
-                    $replacedTemplate = preg_replace($pattern, '', $template);
+                    $replacedTemplate = preg_replace($pattern, '$1', $template);
                     
                     if ($replacedTemplate !== $template) {
                         $text = str_replace($template, $replacedTemplate, $text);
@@ -467,15 +465,17 @@ class ApiAspaklaryaReview extends ApiBase {
     }
     
     private function processDirectImageLinks($text, $normalizedFilename) {
-        $pattern1 = '/(\[\[\s*:?)?(Image|image|תמונה|קו|קובץ|file|File)(\s*:?\s*)' . $normalizedFilename . '([^\[\]]*|\[[^\[\]]*\]|\[\[[^\[\]]*\]\])*(\]\]|\n)/i';
+        $patterns = [
+            '/\[\[\s*:?\s*(Image|image|תמונה|קו|קובץ|file|File)\s*:\s*' . $normalizedFilename . '[^\[\]]*\]\]/i',
+            
+            '/\[\[(Image|image|תמונה|קו|קובץ|file|File)\s*:\s*' . $normalizedFilename . '\s*\|.*?\]\]/i',
+            
+            '/(Image|image|תמונה|קו|קובץ|file|File)\s*:\s*' . $normalizedFilename . '\s*\|[^]|}\n]*/i'
+        ];
         
-        $pattern2 = '/\[\[(Image|image|תמונה|קו|קובץ|file|File)\s*:\s*' . $normalizedFilename . '\s*(\|[^\]]*?)?\]\]/i';
-        
-        $pattern3 = '/(Image|image|תמונה|קו|קובץ|file|File)\s*:\s*' . $normalizedFilename . '\s*(\|[^]|}\n]*)?/i';
-        
-        $text = preg_replace($pattern1, '', $text);
-        $text = preg_replace($pattern2, '', $text);
-        $text = preg_replace($pattern3, '', $text);
+        foreach ($patterns as $pattern) {
+            $text = preg_replace($pattern, '', $text);
+        }
         
         return $text;
     }
