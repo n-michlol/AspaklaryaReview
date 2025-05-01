@@ -1,6 +1,6 @@
 {
     "name": "AspaklaryaReview",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "author": [
         "[https://www.hamichlol.org.il/משתמש:נריה נריה]"
     ],
@@ -133,7 +133,14 @@
                 "aspaklarya-queue-nav-next",
                 "aspaklarya-queue-nav-range",
                 "aspaklarya-queue-nav-per-page",
-                "aspaklarya-queue-nav-go"
+                "aspaklarya-queue-nav-go",
+                "aspaklarya-queue-diff-title",
+                "aspaklarya-queue-diff-confirm",
+                "aspaklarya-queue-diff-cancel",
+                "aspaklarya-queue-manual-remove",
+                "aspaklarya-queue-manual-remove-file",
+                "aspaklarya-queue-notification-confirm",
+                "aspaklarya-queue-diff-edit-label"
             ],
             "dependencies": [
                 "mediawiki.api",
@@ -180,7 +187,6 @@
     "AvailableRights": [
         "aspaklarya-review",
         "aspaklarya-review-log"
-
     ],
     "manifest_version": 2
 }

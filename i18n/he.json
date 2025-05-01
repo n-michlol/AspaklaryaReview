@@ -65,5 +65,12 @@
     "right-aspaklarya-review": "בדיקת תמונות",
     "right-aspaklarya-review-log": "צפייה ביומן בדיקת תמונות",
     "version-aspaklarya": "אספקלריה",
-    "version-aspaklarya-desc": "הרחבות הקשורות לאספקלריה (המכלול)"
+    "version-aspaklarya-desc": "הרחבות הקשורות לאספקלריה (המכלול)",
+    "aspaklarya-queue-diff-title": "סקירת שינויים לפני הסרת התמונה",
+    "aspaklarya-queue-diff-confirm": "אשר שינויים",
+    "aspaklarya-queue-diff-cancel": "ביטול",
+    "aspaklarya-queue-manual-remove": "הקובץ $1 נחסם. אנא הסר את התמונה מהערך/ים באופן ידני: $2.",
+    "aspaklarya-queue-manual-remove-file": "הקובץ $1 נחסם. אנא ודא שהוא לא בשימוש בלתי הולם.",
+    "aspaklarya-queue-notification-confirm": "אישור",
+    "aspaklarya-queue-diff-edit-label": "עריכת הטקסט הסופי עבור הערך:"
 }

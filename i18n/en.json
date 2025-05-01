@@ -63,7 +63,14 @@
     "logentry-aspaklaryareview-submit": "$1 {{GENDER:$2|submitted}} image [[:File:$4|$4]] for review",
     "notification-link-text-view-file": "View file",
     "right-aspaklarya-review": "Image Review",
-    "right-aspaklarya-review-log": "View the Aspaklarya image review log", 
+    "right-aspaklarya-review-log": "View the Aspaklarya image review log",
     "version-aspaklarya": "Aspaklarya",
-    "version-aspaklarya-desc": "Extensions related to Aspaklarya (Hamichlol)"
+    "version-aspaklarya-desc": "Extensions related to Aspaklarya (Hamichlol)",
+    "aspaklarya-queue-diff-title": "Review Changes Before Removing Image",
+    "aspaklarya-queue-diff-confirm": "Confirm Changes",
+    "aspaklarya-queue-diff-cancel": "Cancel",
+    "aspaklarya-queue-manual-remove": "The file $1 has been blocked. Please manually remove the image from the article(s): $2.",
+    "aspaklarya-queue-manual-remove-file": "The file $1 has been blocked. Please ensure it is not used inappropriately.",
+    "aspaklarya-queue-notification-confirm": "Confirm",
+    "aspaklarya-queue-diff-edit-label": "Edit the final text for this page:"
 }

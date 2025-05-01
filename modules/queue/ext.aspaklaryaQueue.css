@@ -160,3 +160,94 @@
 .oo-ui-buttonElement.oo-ui-iconElement.oo-ui-labelElement .oo-ui-iconElement {
     margin-right: 0.5em;
 }
+
+.aspaklarya-diff-dialog {
+    width: 90vw;
+    max-width: 1200px;
+    overflow-x: auto;
+}
+
+.aspaklarya-diff-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    margin-bottom: 1em;
+}
+
+.aspaklarya-diff-item {
+    border: 1px solid #c8ccd1;
+    padding: 1em;
+    border-radius: 3px;
+    background-color: #fff;
+}
+
+.aspaklarya-diff-display {
+    margin-bottom: 1em;
+    border: 1px solid #c8ccd1;
+}
+
+.aspaklarya-diff-display .diff {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+.aspaklarya-diff-display .diff-marker {
+    width: 20px;
+    text-align: center;
+    background: #f8f9fa;
+    border-right: 1px solid #c8ccd1;
+    font-weight: bold;
+    padding: 0.5em;
+}
+
+.aspaklarya-diff-display .diff-context {
+    background: #fff;
+    padding: 0.5em 1em;
+    color: #202122;
+}
+
+.aspaklarya-diff-display .diff-addedline {
+    background: #d4edda;
+    padding: 0.5em 1em;
+    color: #202122;
+}
+
+.aspaklarya-diff-display .diff-deletedline {
+    background: #f8d7da;
+    padding: 0.5em 1em;
+    color: #202122;
+}
+
+.aspaklarya-diff-textarea {
+    width: 100%;
+    height: 200px;
+    font-family: monospace;
+    resize: vertical;
+    margin-top: 0.5em;
+    padding: 0.5em;
+    border: 1px solid #c8ccd1;
+    border-radius: 3px;
+}
+
+.aspaklarya-diff-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5em;
+    margin-top: 1em;
+}
+
+.aspaklarya-persistent-notification {
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    background-color: #f2dede;
+    border-left: 4px solid #d9534f;
+    color: #a94442;
+}
+
+.aspaklarya-notification-content {
+    margin-bottom: 0.5em;
+}

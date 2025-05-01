@@ -28,6 +28,10 @@ class Hooks implements BeforePageDisplayHook {
             $out->addModules(['ext.aspaklaryaReview']);
         }
         
+        if ($title->getPrefixedText() === 'Special:AspaklaryaQueue') {
+            $out->addModules(['ext.aspaklaryaQueue']);
+        }
+        
         $user = $out->getUser();
         
         if ($user->isRegistered() && $this->permissionManager->userHasRight($user, 'aspaklarya-review')) {

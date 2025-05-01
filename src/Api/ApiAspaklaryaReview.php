@@ -147,6 +147,46 @@ class ApiAspaklaryaReview extends ApiBase {
                         $this->dieWithError('Record not found', 'notfound');
                     }
                     
+                    $result = $this->removeImage($row->arq_filename, false, $user);
+                    
+                    $this->getResult()->addValue(null, 'success', true);
+                    $this->getResult()->addValue(null, 'diffData', $result['diffData']);
+                    $this->getResult()->addValue(null, 'queueId', $row->arq_id);
+                    $this->getResult()->addValue(null, 'requesterId', $row->arq_requester);
+                    $this->getResult()->addValue(null, 'filename', $row->arq_filename);
+                    $this->getResult()->addValue(null, 'pageId', $row->arq_page_id);
+                    if ($result['fileModified']) {
+                        $this->getResult()->addValue(null, 'fileModified', true);
+                    }
+                    break;
+
+                case 'confirmRemove':
+                    if (!$user->isAllowed('aspaklarya-review')) {
+                        $this->dieWithError('You do not have permission to review images', 'permissiondenied');
+                    }
+                    
+                    if (!isset($params['id']) || !isset($params['edits'])) {
+                        $this->dieWithError('Missing ID or edits parameter', 'missingparam');
+                    }
+                    
+                    $row = $dbw->selectRow(
+                        'aspaklarya_review_queue',
+                        '*',
+                        ['arq_id' => (int)$params['id']],
+                        __METHOD__
+                    );
+                    
+                    if (!$row) {
+                        $this->dieWithError('Record not found', 'notfound');
+                    }
+                    
+                    $edits = json_decode($params['edits'], true);
+                    if (!$edits) {
+                        $this->dieWithError('Invalid edits data', 'invalidparam');
+                    }
+                    
+                    $pagesModified = $this->applyRemoveEdits($edits, $user);
+                    
                     $dbw->update(
                         'aspaklarya_review_queue',
                         [
@@ -157,8 +197,6 @@ class ApiAspaklaryaReview extends ApiBase {
                         ['arq_id' => (int)$params['id']],
                         __METHOD__
                     );
-                    
-                    $pagesModified = $this->removeImage($row->arq_filename);
                     
                     $notificationId = $this->sendNotification(
                         $row->arq_requester,
@@ -311,7 +349,7 @@ class ApiAspaklaryaReview extends ApiBase {
             }
             
             $event = \EchoEvent::create([
-                'type' => $notificationType,
+                'type' => 'aspaklarya-' . $type,
                 'agent' => $this->getUser(),
                 'extra' => $extra
             ]);
@@ -328,62 +366,24 @@ class ApiAspaklaryaReview extends ApiBase {
         }
     }
 
-    private function removeImage($filename) {
+    private function removeImage($filename, $saveEdits = true, $user = null) {
         try {
             $services = MediaWikiServices::getInstance();
             $dbr = $this->loadBalancer->getConnection(DB_REPLICA);
             $pagesModified = [];
-            $user = $this->getUser();
+            $diffData = [];
+            $user = $user ?: $this->getUser();
             $canAutopatrol = $user->isAllowed('autopatrol');
-            
-            $res = $dbr->select(
-                'imagelinks',
-                'il_from',
-                ['il_to' => str_replace(' ', '_', $filename)],
-                __METHOD__
-            );
-            
-            foreach ($res as $row) {
-                $title = Title::newFromID($row->il_from);
-                if (!$title) {
-                    continue;
-                }
-                
-                $wikiPageFactory = $services->getWikiPageFactory();
-                $page = $wikiPageFactory->newFromTitle($title);
-                $content = $page->getContent();
-                
-                if (!$content) {
-                    continue;
-                }
-                
-                $text = $content->getText();
-                
-                $text = $this->removeImageFromText($text, $filename);
-                
-                $updater = $page->newPageUpdater($user);
-                $updater->setContent(SlotRecord::MAIN, new WikitextContent($text));
-                
-                if ($canAutopatrol) {
-                    $updater->setRcPatrolStatus(RecentChange::PRC_AUTOPATROLLED);
-                } else {
-                    $updater->setRcPatrolStatus(RecentChange::PRC_PATROLLED);
-                }
-                
-                $updater->saveRevision(
-                    CommentStoreComment::newUnsavedComment('הסרת תמונה'),
-                    EDIT_MINOR | EDIT_FORCE_BOT
-                );
-                
-                $pagesModified[] = $title->getPrefixedText();
-            }
-            
+            $fileModified = false;
+
             $fileTitle = Title::makeTitle(NS_FILE, $filename);
             $wikiPageFactory = $services->getWikiPageFactory();
             $filePage = $wikiPageFactory->newFromTitle($fileTitle);
             
+            $newFileText = '#הפניה [[קובץ:תמונה חילופית.jpg]]';
+            
             $updater = $filePage->newPageUpdater($user);
-            $updater->setContent(SlotRecord::MAIN, new WikitextContent('#הפניה [[קובץ:תמונה חילופית.jpg]]'));
+            $updater->setContent(SlotRecord::MAIN, new WikitextContent($newFileText));
             
             if ($canAutopatrol) {
                 $updater->setRcPatrolStatus(RecentChange::PRC_AUTOPATROLLED);
@@ -396,11 +396,105 @@ class ApiAspaklaryaReview extends ApiBase {
                 EDIT_MINOR | EDIT_FORCE_BOT
             );
             
-            return $pagesModified;
+            $fileModified = true;
+
+            $res = $dbr->select(
+                'imagelinks',
+                'il_from',
+                ['il_to' => str_replace(' ', '_', $filename)],
+                __METHOD__
+            );
+            
+            foreach ($res as $row) {
+                $title = Title::newFromID($row->il_from);
+                if (!$title || $title->getNamespace() === NS_FILE) {
+                    continue;
+                }
+                
+                $page = $wikiPageFactory->newFromTitle($title);
+                $content = $page->getContent();
+                
+                if (!$content) {
+                    continue;
+                }
+                
+                $originalText = $content->getText();
+                $newText = $this->removeImageFromText($originalText, $filename);
+                
+                if ($saveEdits) {
+                    $updater = $page->newPageUpdater($user);
+                    $updater->setContent(SlotRecord::MAIN, new WikitextContent($newText));
+                    
+                    if ($canAutopatrol) {
+                        $updater->setRcPatrolStatus(RecentChange::PRC_AUTOPATROLLED);
+                    } else {
+                        $updater->setRcPatrolStatus(RecentChange::PRC_PATROLLED);
+                    }
+                    
+                    $updater->saveRevision(
+                        CommentStoreComment::newUnsavedComment('הסרת תמונה'),
+                        EDIT_MINOR | EDIT_FORCE_BOT
+                    );
+                    
+                    $pagesModified[] = $title->getPrefixedText();
+                } else {
+                    $diffData[] = [
+                        'title' => $title->getPrefixedText(),
+                        'pageId' => $title->getArticleID(),
+                        'originalText' => $originalText,
+                        'newText' => $newText
+                    ];
+                }
+            }
+            
+            return [
+                'fileModified' => $fileModified,
+                'diffData' => $diffData,
+                'pagesModified' => $saveEdits ? $pagesModified : []
+            ];
         } catch (\Exception $e) {
             wfLogWarning('Error removing image: ' . $e->getMessage());
-            return [];
+            return [
+                'fileModified' => false,
+                'diffData' => [],
+                'pagesModified' => []
+            ];
         }
+    }
+
+    private function applyRemoveEdits($edits, $user) {
+        $services = MediaWikiServices::getInstance();
+        $pagesModified = [];
+        $canAutopatrol = $user->isAllowed('autopatrol');
+        
+        foreach ($edits as $edit) {
+            $title = Title::newFromText($edit['title']);
+            if (!$title) {
+                continue;
+            }
+            
+            $wikiPageFactory = $services->getWikiPageFactory();
+            $page = $wikiPageFactory->newFromTitle($title);
+            $newText = $edit['newText'];
+            
+            $updater = $page->newPageUpdater($user);
+            $updater->setContent(SlotRecord::MAIN, new WikitextContent($newText));
+            
+            if ($canAutopatrol) {
+                $updater->setRcPatrolStatus(RecentChange::PRC_AUTOPATROLLED);
+            } else {
+                $updater->setRcPatrolStatus(RecentChange::PRC_PATROLLED);
+            }
+            
+            $updater->saveRevision(
+                CommentStoreComment::newUnsavedComment('הסרת תמונה'),
+                EDIT_MINOR | EDIT_FORCE_BOT
+            );
+            
+            $pagesModified[] = $title->getPrefixedText();
+        }
+        
+        return $pagesModified;
     }
 
     private function removeImageFromText($text, $filename) {
@@ -450,9 +544,11 @@ class ApiAspaklaryaReview extends ApiBase {
         if (preg_match_all('/\{\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}\}/s', $text, $matches)) {
             foreach ($matches[0] as $template) {
                 if (preg_match('/\|\s*תמונה\s*=/i', $template)) {
-                    $pattern = '/(\|\s*תמונה\s*=\s*)(קובץ:|file:|image:|תמונה:|File:|Image:)?(' . $normalizedFilename . ')([^|}\n]*)/i';
+                    $pattern = '/\|\s*תמונה\s*=\s*(קובץ:|file:|image:|תמונה:|File:|Image:|קו:)?'
+                             . $normalizedFilename
+                             . '[^|}\n]*(\n|\r\n)?/i';
                     
-                    $replacedTemplate = preg_replace($pattern, '$1', $template);
+                    $replacedTemplate = preg_replace($pattern, '', $template);
                     
                     if ($replacedTemplate !== $template) {
                         $text = str_replace($template, $replacedTemplate, $text);
@@ -465,17 +561,15 @@ class ApiAspaklaryaReview extends ApiBase {
     }
     
     private function processDirectImageLinks($text, $normalizedFilename) {
-        $patterns = [
-            '/\[\[\s*:?\s*(Image|image|תמונה|קו|קובץ|file|File)\s*:\s*' . $normalizedFilename . '[^\[\]]*\]\]/i',
-            
-            '/\[\[(Image|image|תמונה|קו|קובץ|file|File)\s*:\s*' . $normalizedFilename . '\s*\|.*?\]\]/i',
-            
-            '/(Image|image|תמונה|קו|קובץ|file|File)\s*:\s*' . $normalizedFilename . '\s*\|[^]|}\n]*/i'
-        ];
+        $pattern1 = '/(\[\[\s*:?)?(Image|image|תמונה|קו|קובץ|file|File)(\s*:?\s*)' . $normalizedFilename . '([^\[\]]*|\[[^\[\]]*\]|\[\[[^\[\]]*\]\])*(\]\]|\n)/i';
         
-        foreach ($patterns as $pattern) {
-            $text = preg_replace($pattern, '', $text);
-        }
+        $pattern2 = '/\[\[(Image|image|תמונה|קו|קובץ|file|File)\s*:\s*' . $normalizedFilename . '\s*(\|[^\]]*?)?\]\]/i';
+        
+        $pattern3 = '/(Image|image|תמונה|קו|קובץ|file|File)\s*:\s*' . $normalizedFilename . '\s*(\|[^]|}\n]*)?/i';
+        
+        $text = preg_replace($pattern1, '', $text);
+        $text = preg_replace($pattern2, '', $text);
+        $text = preg_replace($pattern3, '', $text);
         
         return $text;
     }
@@ -483,7 +577,7 @@ class ApiAspaklaryaReview extends ApiBase {
     public function getAllowedParams() {
         return [
             'do' => [
-                ApiBase::PARAM_TYPE => ['submit', 'remove', 'approve', 'edited', 'checkprevious'],
+                ApiBase::PARAM_TYPE => ['submit', 'remove', 'approve', 'edited', 'checkprevious', 'confirmRemove'],
                 ApiBase::PARAM_REQUIRED => false,
                 ParamValidator::PARAM_DEFAULT => 'submit'
             ],
@@ -497,6 +591,10 @@ class ApiAspaklaryaReview extends ApiBase {
             ],
             'pageid' => [
                 ApiBase::PARAM_TYPE => 'integer',
+                ApiBase::PARAM_REQUIRED => false
+            ],
+            'edits' => [
+                ApiBase::PARAM_TYPE => 'string',
                 ApiBase::PARAM_REQUIRED => false
             ]
         ];
@@ -517,7 +615,9 @@ class ApiAspaklaryaReview extends ApiBase {
             'action=aspaklaryareview&do=remove&id=456'
                 => 'apihelp-aspaklaryareview-example-remove',
             'action=aspaklaryareview&do=checkprevious&filename=Example.jpg'
-                => 'apihelp-aspaklaryareview-example-checkprevious'
+                => 'apihelp-aspaklaryareview-example-checkprevious',
+            'action=aspaklaryareview&do=confirmRemove&id=456&edits={}'
+                => 'apihelp-aspaklaryareview-example-confirmRemove'
         ];
     }
 
