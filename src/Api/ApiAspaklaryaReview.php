@@ -147,6 +147,8 @@ class ApiAspaklaryaReview extends ApiBase {
                         $this->dieWithError('Record not found', 'notfound');
                     }
                     
+                    $fileModified = $this->blockFileImage($row->arq_filename);
+                    
                     $result = $this->removeImage($row->arq_filename, false, $user);
                     
                     $this->getResult()->addValue(null, 'success', true);
@@ -155,9 +157,7 @@ class ApiAspaklaryaReview extends ApiBase {
                     $this->getResult()->addValue(null, 'requesterId', $row->arq_requester);
                     $this->getResult()->addValue(null, 'filename', $row->arq_filename);
                     $this->getResult()->addValue(null, 'pageId', $row->arq_page_id);
-                    if ($result['fileModified']) {
-                        $this->getResult()->addValue(null, 'fileModified', true);
-                    }
+                    $this->getResult()->addValue(null, 'fileModified', $fileModified);
                     break;
 
                 case 'confirmRemove':
@@ -366,15 +366,11 @@ class ApiAspaklaryaReview extends ApiBase {
         }
     }
 
-    private function removeImage($filename, $saveEdits = true, $user = null) {
+    private function blockFileImage($filename) {
         try {
             $services = MediaWikiServices::getInstance();
-            $dbr = $this->loadBalancer->getConnection(DB_REPLICA);
-            $pagesModified = [];
-            $diffData = [];
-            $user = $user ?: $this->getUser();
+            $user = $this->getUser();
             $canAutopatrol = $user->isAllowed('autopatrol');
-            $fileModified = false;
 
             $fileTitle = Title::makeTitle(NS_FILE, $filename);
             $wikiPageFactory = $services->getWikiPageFactory();
@@ -396,7 +392,22 @@ class ApiAspaklaryaReview extends ApiBase {
                 EDIT_MINOR | EDIT_FORCE_BOT
             );
             
-            $fileModified = true;
+            return true;
+        } catch (\Exception $e) {
+            wfLogWarning('Error blocking file image: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function removeImage($filename, $saveEdits = true, $user = null) {
+        try {
+            $services = MediaWikiServices::getInstance();
+            $dbr = $this->loadBalancer->getConnection(DB_REPLICA);
+            $pagesModified = [];
+            $diffData = [];
+            $user = $user ?: $this->getUser();
+            $canAutopatrol = $user->isAllowed('autopatrol');
+            $wikiPageFactory = $services->getWikiPageFactory();
 
             $res = $dbr->select(
                 'imagelinks',
@@ -448,14 +459,12 @@ class ApiAspaklaryaReview extends ApiBase {
             }
             
             return [
-                'fileModified' => $fileModified,
                 'diffData' => $diffData,
                 'pagesModified' => $saveEdits ? $pagesModified : []
             ];
         } catch (\Exception $e) {
             wfLogWarning('Error removing image: ' . $e->getMessage());
             return [
-                'fileModified' => false,
                 'diffData' => [],
                 'pagesModified' => []
             ];
