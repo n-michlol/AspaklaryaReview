@@ -202,7 +202,8 @@
         dialogContent.append(buttonsContainer);
 
         const dialog = new OO.ui.MessageDialog({
-            size: 'larger'
+            size: 'larger',
+            classes: ['aspaklarya-wide-dialog']
         });
 
         const windowManager = new OO.ui.WindowManager();
@@ -214,6 +215,18 @@
             message: dialogContent,
             actions: []
         });
+
+        setTimeout(function() {
+        $('.aspaklarya-wide-dialog .oo-ui-window-frame').css({
+            'width': '95%',
+            'max-width': '95vw'
+        });
+        
+        $('.aspaklarya-wide-dialog .oo-ui-dialog-content, .aspaklarya-wide-dialog .oo-ui-window-body').css({
+            'width': '100%',
+            'max-width': '100%'
+        });
+        }, 50);
 
         confirmButton.on('click', function() {
             const edits = [];
